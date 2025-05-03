@@ -5,7 +5,7 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
 // Importing QrScanner dynamically to avoid SSR issues
-const QrScanner = dynamic(() => import('../components/QrScanner'), { ssr: false });
+const QrScanner = dynamic(() => import('../components/modals/QrScanner'), { ssr: false });
 
 
 export default function AdminPage() {
@@ -24,18 +24,31 @@ export default function AdminPage() {
 
   async function addStamp(userId) {
     const userRef = doc(db, 'users', userId);
-    const current = customers.find(c => c.id === userId)?.stamps || 0;
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+  
+    const updatedBusinesses = { ...userData.joinedBusinesses };
+  
+    for (const [businessId, card] of Object.entries(updatedBusinesses)) {
+      if (card.type === 'stamp') {
+        updatedBusinesses[businessId].stamps = (card.stamps || 0) + 1;
+      }
+    }
+  
     await updateDoc(userRef, {
-      stamps: current + 1,
+      joinedBusinesses: updatedBusinesses,
       lastStampTime: new Date()
     });
+  
     setCustomers(prev =>
       prev.map(c =>
-        c.id === userId ? { ...c, stamps: current + 1 } : c
+        c.id === userId
+          ? { ...c, joinedBusinesses: updatedBusinesses }
+          : c
       )
     );
   }
-
+  
   async function handleScanSuccess(scannedId) {
     setScanning(false);
     const user = customers.find(c => c.id === scannedId);

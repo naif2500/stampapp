@@ -1,9 +1,9 @@
-// components/PunchCard.js
+// components/LoyaltyCard.js
 'use client';
 
 import React from 'react';
 
-const PunchCard = ({ businessId, name, cardName, stamps, onClick }) => {
+const LoyaltyCard = ({ businessId, name, cardName, stamps, onClick }) => {
   return (
     <div
       key={businessId}
@@ -22,4 +22,4 @@ const PunchCard = ({ businessId, name, cardName, stamps, onClick }) => {
   );
 };
 
-export default PunchCard;
+export default LoyaltyCard;

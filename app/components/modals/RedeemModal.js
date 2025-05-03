@@ -1,23 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 export default function RedeemModal({ isOpen, onClose, onConfirm, name, cardName }) {
   const [confirmed, setConfirmed] = useState(false);
+  const trackRef = useRef(null);
+  const handleRef = useRef(null);
 
   if (!isOpen) return null;
 
   const handleSlideComplete = () => {
     setConfirmed(true);
     setTimeout(() => {
-      onConfirm(); // trigger redemption
+      onConfirm();
       setConfirmed(false);
     }, 500);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -32,24 +34,27 @@ export default function RedeemModal({ isOpen, onClose, onConfirm, name, cardName
             <span className="font-bold">{cardName}</span> at <span className="font-bold">{name}</span>?
           </p>
 
-          {/* Slide to Confirm */}
-          <motion.div
-            drag="x"
-            dragConstraints={{ left: 0, right: 250 }}
-            onDragEnd={(event, info) => {
-              if (info.point.x > 200) handleSlideComplete();
-            }}
-            className="bg-gray-200 w-full h-12 rounded-full flex items-center relative cursor-pointer overflow-hidden"
-          >
+          {/* Slide Track */}
+          <div ref={trackRef} className="relative w-full h-12 bg-[#D2D6F0] rounded-full overflow-hidden">
             <motion.div
-              className={`h-full w-1/3 bg-green-500 rounded-full flex items-center justify-center text-white font-bold ${
-                confirmed ? 'bg-green-700' : 'bg-green-500'
-              }`}
-              whileTap={{ scale: 1.1 }}
+              ref={handleRef}
+              className="absolute top-0 left-0 h-12 w-1/3 bg-[#6774CA] rounded-full flex items-center justify-center text-white font-bold cursor-pointer"
+              drag="x"
+              dragConstraints={trackRef}
+              onDragEnd={(event, info) => {
+                const trackWidth = trackRef.current.offsetWidth;
+                const handleWidth = handleRef.current.offsetWidth;
+                const dragThreshold = trackWidth - handleWidth - 10; // 10px margin
+
+                if (info.point.x >= dragThreshold) {
+                  handleSlideComplete();
+                }
+              }}
+              whileTap={{ scale: 1.05 }}
             >
               {confirmed ? 'Confirmed' : 'Slide →'}
             </motion.div>
-          </motion.div>
+          </div>
 
           <button
             onClick={onClose}

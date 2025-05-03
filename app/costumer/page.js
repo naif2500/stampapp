@@ -1,7 +1,7 @@
 'use client';
-import RedeemModal from '../components/RedeemModal';
-import AddBusinessModal from '../components/AddBusinessModal';
-import PunchCard from '../components/PunchCard';
+import RedeemModal from '../components/modals/RedeemModal';
+import AddBusinessModal from '../components/modals/AddBusinessModal';
+import LoyaltyCard from '../components/cards/LoyaltyCard';
 import { useEffect, useState } from 'react';
 import { Info, Home, User, Plus } from 'lucide-react';
 import { db } from '@/lib/firebase';
@@ -12,6 +12,7 @@ import {
   collection,
   getDocs,
 } from 'firebase/firestore';
+
 
 const CUSTOMER_ID = 'test-customer-id'; // Replace this dynamically later
 
@@ -35,52 +36,74 @@ export default function CustomerPage() {
 
   const openAddModal = async () => {
     const businessSnap = await getDocs(collection(db, 'businesses'));
-    const businesses = businessSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Filter out already joined businesses
-    const unjoined = businesses.filter(b => !(b.id in joinedBusinesses));
-    setAvailableBusinesses(unjoined);
+    const allBusinesses = businessSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+    // Filter to only unjoined businesses
+    const unjoinedBusinesses = allBusinesses.filter(b => !(b.id in joinedBusinesses));
+  
+    // Only keep the needed fields (id and name)
+    const simplifiedBusinesses = unjoinedBusinesses.map(b => ({
+      id: b.id,
+      name: b.name,
+    }));
+  
+    setAvailableBusinesses(simplifiedBusinesses);
     setShowAddModal(true);
   };
+  
 
   const joinBusiness = async (businessId) => {
     const businessRef = doc(db, 'businesses', businessId);
     const businessSnap = await getDoc(businessRef);
-    const stampsNeeded = businessSnap.data().stampsNeeded;
-    const name = businessSnap.data().name;
-    const cardName = businessSnap.data().cardName;
-
-
-
+  
+    const businessData = businessSnap.data();
+    const { stampsNeeded, name, cardName, type } = businessData;
+  
+    const initialStamps = type === 'punch' ? stampsNeeded : 0;
   
     const userRef = doc(db, 'users', CUSTOMER_ID);
     const updated = {
       ...joinedBusinesses,
       [businessId]: {
-        stamps: stampsNeeded,
-        name: name,
-        cardName: cardName,
+        stamps: initialStamps,
+        name,
+        cardName,
+        type,
       },
-    };     
+    };
+  
     await updateDoc(userRef, { joinedBusinesses: updated });
     setJoinedBusinesses(updated);
     setShowAddModal(false);
   };
+  
   const handleRedeemConfirm = async () => {
-    const newStamps = joinedBusinesses[confirmRedeem].stamps - 1;
-    const updated = {
-      ...joinedBusinesses,
-      [confirmRedeem]: {
-        ...joinedBusinesses[confirmRedeem],
-        stamps: newStamps,
-      },
-    };
-
+    const current = joinedBusinesses[confirmRedeem];
+    const { type } = current;
     const userRef = doc(db, 'users', CUSTOMER_ID);
+    const updated = { ...joinedBusinesses };
+    
+    if (type === 'punch') {
+      const newStamps = current.stamps - 1;
+      if (newStamps <= 0) {
+        delete updated[confirmRedeem]; 
+      } else {
+        updated[confirmRedeem].stamps = newStamps;
+      }
+    } else if (type === 'stamp') {
+      const newStamps = current.stamps;
+      if (newStamps >= 9) {
+        updated[confirmRedeem].stamps = 0; 
+      }
+    }
+    
     await updateDoc(userRef, { joinedBusinesses: updated });
     setJoinedBusinesses(updated);
-    setConfirmRedeem(null); // Close the modal
+    setConfirmRedeem(null);
+    
+  
   };
-
+  
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -98,13 +121,14 @@ export default function CustomerPage() {
           <Plus className="w-6 h-6" />
         </button>
 
-        <a href="#" className="text-gray-600 hover:text-black">
+        <a href="#" className="text-gray-600 hover:text-black"   onClick={() => window.location.reload()}
+        >
           <Home className="w-6 h-6" />
         </a>
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-20">
+      <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10">
         <div className="flex text-gray-800 justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Dine kort</h1>
         </div>
@@ -117,20 +141,21 @@ export default function CustomerPage() {
         ) : (
           <div className="flex flex-wrap gap-4">
             {Object.entries(joinedBusinesses).map(([businessId, data]) => (
-              <PunchCard
+              <LoyaltyCard
                 key={businessId}
                 businessId={businessId}
                 name={data.name}
                 cardName={data.cardName}
                 stamps={data.stamps}
+                type={data.type}
                 onClick={setConfirmRedeem}
               />
             ))}
           </div>
         )}
 
-        {confirmRedeem && (
-          <RedeemModal
+{confirmRedeem && joinedBusinesses[confirmRedeem]?.type !== 'stamp' && (
+  <RedeemModal
             isOpen={true}
             onClose={() => setConfirmRedeem(null)}
             onConfirm={handleRedeemConfirm}

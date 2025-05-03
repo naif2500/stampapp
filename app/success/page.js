@@ -27,6 +27,7 @@ export default function SuccessPage() {
           name: businessSnap.data().name,
           cardName: businessSnap.data().cardName,
           stamps: businessSnap.data().stampsNeeded,
+          type: businessSnap.data().type,
         },
       };
   

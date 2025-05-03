@@ -1,5 +1,5 @@
 // pages/business.js
-import BusinessCard from '../components/BusinessCard';
+import BusinessCard from '../components/cards/BusinessCard';
 
 export default function BusinessPage() {
   return (

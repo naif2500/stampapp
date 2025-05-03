@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Navbar() {
   return (
-    <nav className="w-full bg-[#6774CA] shadow p-4 flex justify-between items-center">
+    <nav className=" w-full bg-[#6774CA] shadow p-4 flex justify-between items-center">
     {/* Logo */}
          <div className="text-xl font-bold text-white">
            <Link href="/">Stampify</Link>
