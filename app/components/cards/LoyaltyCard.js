@@ -17,7 +17,7 @@ const LoyaltyCard = ({ businessId, name, cardName, stamps, onClick }) => {
         </span>
       </div>
       <h3 className="text-4xl font-bold text-[#333]">{cardName}</h3>
-      <p className="text-sm text-gray-600 mt-2">Earn stamps with every purchase!</p>
+      <p className="text-sm text-gray-600 mt-2">Spar 15% på hvert køb</p>
     </div>
   );
 };

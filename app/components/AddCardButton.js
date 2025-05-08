@@ -4,12 +4,12 @@ import { loadStripe } from '@stripe/stripe-js';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-export const AddCardButton = ({ businessId }) => {
+export const AddCardButton = ({ businessId,  customerId }) => {
   const handleClick = async () => {
     const res = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ businessId }),
+      body: JSON.stringify({ businessId,  customerId}),
     });
 
     const { sessionId } = await res.json();

@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 export default function SuccessPage() {
   const searchParams = useSearchParams();
   const businessId = searchParams.get('businessId');
-  const customerId = searchParams.get('customerId') || 'test-customer-id'; // fallback
+  const customerId = searchParams.get('customerId'); 
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function SuccessPage() {
   
       // Redirect to /customer after short delay
       setTimeout(() => {
-        router.push('/customer');
+        router.push('/costumer');
       }, 1500);
     };
   

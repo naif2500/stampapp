@@ -4,7 +4,7 @@ import { AddCardButton } from '../AddCardButton';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export default function AddBusinessModal({ businesses, onClose, onJoin }) {
+export default function AddBusinessModal({ businesses, onClose, onJoin, customerId }) {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,6 +64,7 @@ export default function AddBusinessModal({ businesses, onClose, onJoin }) {
       ) : (
         <AddCardButton
           businessId={selectedBusiness.id}
+          customerId={customerId}
           onClick={() => onJoin(selectedBusiness.id)}
         />
       )}

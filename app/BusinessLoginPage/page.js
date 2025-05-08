@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function BusinessLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/costumer'); // or wherever your customer dashboard is
+      router.push('/businessDashboard'); // Redirect to business dashboard
     } catch (err) {
       setError(err.message);
     }
@@ -22,7 +22,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto mt-20 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4 text-center">Log In</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Business Log In</h2>
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
         <input
           type="email"

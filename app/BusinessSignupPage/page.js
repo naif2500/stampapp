@@ -1,14 +1,13 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
-export default function SignupPage() {
+export default function BusinessSignupPage() {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,16 +23,14 @@ export default function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create Firestore user profile
-      await setDoc(doc(db, 'users', user.uid), {
-        name,
+      // Create Firestore business profile
+      await setDoc(doc(db, 'businesses', user.uid), {
+        businessName,
         email,
-        joinedBusinesses: {},
-        stamps: 0,
         createdAt: new Date(),
       });
 
-      router.push('/');
+      router.push('/admin'); // Redirect to business dashboard
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to create account');
@@ -48,16 +45,16 @@ export default function SignupPage() {
         onSubmit={handleSignup}
         className="bg-white p-8 rounded-xl shadow-md max-w-sm w-full space-y-4"
       >
-        <h1 className="text-xl font-semibold text-center">Sign Up</h1>
+        <h1 className="text-xl font-semibold text-center">Business Sign Up</h1>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Business Name"
           className="w-full border rounded px-3 py-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
           required
         />
 
@@ -84,7 +81,7 @@ export default function SignupPage() {
           disabled={loading}
           className="w-full bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
         >
-          {loading ? 'Signing up...' : 'Create Account'}
+          {loading ? 'Signing up...' : 'Create Business Account'}
         </button>
       </form>
     </div>

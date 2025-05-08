@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request) {
   const body = await request.json();
-  const { businessId } = body;
+  const { businessId, customerId} = body;
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -26,7 +26,7 @@ export async function POST(request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?businessId=${businessId}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?businessId=${businessId}&customerId=${customerId}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
     });
 
