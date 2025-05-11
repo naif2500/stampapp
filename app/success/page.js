@@ -28,6 +28,8 @@ export default function SuccessPage() {
           cardName: businessSnap.data().cardName,
           stamps: businessSnap.data().stampsNeeded,
           type: businessSnap.data().type,
+          logoUrl: businessSnap.data().logoUrl,
+          stampsNeeded: businessSnap.data().stampsNeeded,
         },
       };
   

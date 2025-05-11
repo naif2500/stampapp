@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-const LoyaltyCard = ({ businessId, name, cardName, stamps, onClick }) => {
+const LoyaltyCard = ({ businessId, name, cardName, stamps, stampsNeeded, onClick, logoUrl}) => {
   return (
     <div
       key={businessId}
@@ -11,9 +11,12 @@ const LoyaltyCard = ({ businessId, name, cardName, stamps, onClick }) => {
       onClick={() => onClick(businessId)}
     >
       <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-3">
+        <img src={logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-full" />
         <h2 className="text-lg font-semibold text-[#333]">{name}</h2>
+        </div>
         <span className="text-xs bg-white/60 px-3 py-1 rounded-full text-[#6774CA] font-medium shadow-inner">
-          {stamps}/10
+          {stamps}/{stampsNeeded}
         </span>
       </div>
       <h3 className="text-4xl font-bold text-[#333]">{cardName}</h3>

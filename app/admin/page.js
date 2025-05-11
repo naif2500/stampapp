@@ -1,15 +1,57 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase'; // Assuming auth is exported from lib/firebase
 import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
+import { onAuthStateChanged } from 'firebase/auth'; // Import Firebase Auth methods
 
 const QrScanner = dynamic(() => import('../components/modals/QrScanner'), { ssr: false });
 
 export default function AdminPage() {
   const [customers, setCustomers] = useState([]);
   const [scanning, setScanning] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication status
+  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check for authentication
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // If the user is logged in, check if they are a business user
+        const businessRef = doc(db, 'businesses', user.uid);
+        getDoc(businessRef).then((docSnap) => {
+          if (docSnap.exists()) {
+            setIsAuthenticated(true); // User is a business, so allow access
+          } else {
+            setIsAuthenticated(false); // Redirect if not a business user
+            router.push('/BusinessLoginPage'); // Redirect to login page if not authenticated
+          }
+        });
+      } else {
+        setIsAuthenticated(false);
+        router.push('/BusinessLoginPage'); // Redirect to login page if no user is logged in
+      }
+      setIsLoading(false); // Stop loading after checking auth status
+    });
+
+    return () => unsubscribe(); // Cleanup the listener when the component unmounts
+  }, [router]);
+
+  useEffect(() => {
+    // Fetch customers only if the user is authenticated
+    if (isAuthenticated) {
+      async function fetchCustomers() {
+        const snapshot = await getDocs(collection(db, 'users'));
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setCustomers(data);
+      }
+      fetchCustomers();
+    }
+  }, [isAuthenticated]);
+
 
   useEffect(() => {
     async function fetchCustomers() {
@@ -57,6 +99,14 @@ export default function AdminPage() {
     } else {
       alert(`No user found with ID: ${scannedId}`);
     }
+  }
+  
+  if (isLoading) {
+    return <div>Loading...</div>; // Display a loading message while auth state is being determined
+  }
+
+  if (!isAuthenticated) {
+    return null; // Return nothing or show an unauthorized page if not authenticated
   }
 
   return (

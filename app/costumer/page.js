@@ -100,6 +100,8 @@ export default function CustomerPage() {
         name,
         cardName,
         type,
+        logoUrl,
+        stampsNeeded,
       },
     };
   
@@ -181,6 +183,8 @@ export default function CustomerPage() {
                 cardName={data.cardName}
                 stamps={data.stamps}
                 type={data.type}
+                logoUrl={data.logoUrl}
+                stampsNeeded={data.stampsNeeded}
                 onClick={() => {
                   if (data.type === 'stamp') {
                     setShowQrForBusinessId(businessId);
