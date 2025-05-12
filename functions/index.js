@@ -1,19 +1,51 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+exports.redeemStamp = functions.region('europe-west1').https.onCall(async (data, context) => {
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be logged in');
+  }
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+  const userId = context.auth.uid;
+  const {businessId } = data;
+
+  const userRef = admin.firestore().collection('users').doc(userId);
+  const userSnap = await userRef.get();
+
+  if (!userSnap.exists) {
+    throw new functions.https.HttpsError('not-found', 'User not found');
+  }
+
+  const userData = userSnap.data();
+  const joined = userData.joinedBusinesses || {};
+
+  if (!joined[businessId]) {
+    throw new functions.https.HttpsError('invalid-argument', 'User not joined to business');
+  }
+
+  const card = joined[businessId];
+
+  if (card.type === 'stamp') {
+    if ((card.stamps || 0) >= 9) {
+      joined[businessId].stamps = 0; // Reset
+    } else {
+      throw new functions.https.HttpsError('failed-precondition', 'Not enough stamps to redeem');
+    }
+  } else if (card.type === 'punch') {
+    if ((card.stamps || 0) > 0) {
+      joined[businessId].stamps -= 1;
+      if (joined[businessId].stamps <= 0) {
+        delete joined[businessId];
+      }
+    } else {
+      throw new functions.https.HttpsError('failed-precondition', 'No punches left');
+    }
+  } else {
+    throw new functions.https.HttpsError('invalid-argument', 'Unknown card type');
+  }
+
+  await userRef.update({ joinedBusinesses: joined });
+  return { success: true };
+});

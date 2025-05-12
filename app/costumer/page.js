@@ -1,4 +1,5 @@
 'use client';
+import { app } from '@/lib/firebase';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import QrModal from '../components/modals/QrModal';
@@ -16,6 +17,8 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
 
 
 export default function CustomerPage() {
@@ -88,7 +91,7 @@ export default function CustomerPage() {
     const businessSnap = await getDoc(businessRef);
   
     const businessData = businessSnap.data();
-    const { stampsNeeded, name, cardName, type } = businessData;
+    const { stampsNeeded, name, cardName, type, logoUrl} = businessData;
   
     const initialStamps = type === 'punch' ? stampsNeeded : 0;
   
@@ -111,33 +114,30 @@ export default function CustomerPage() {
   };
   
   const handleRedeemConfirm = async () => {
-    if (!customerId || !confirmRedeem) return; 
-
-    const current = joinedBusinesses[confirmRedeem];
-    const { type } = current;
-    const userRef = doc(db, 'users', customerId);
-    const updated = { ...joinedBusinesses };
-    
-    if (type === 'punch') {
-      const newStamps = current.stamps - 1;
-      if (newStamps <= 0) {
-        delete updated[confirmRedeem]; 
-      } else {
-        updated[confirmRedeem].stamps = newStamps;
-      }
-    } else if (type === 'stamp') {
-      const newStamps = current.stamps;
-      if (newStamps >= 9) {
-        updated[confirmRedeem].stamps = 0; 
-      }
-    }
-    
-    await updateDoc(userRef, { joinedBusinesses: updated });
-    setJoinedBusinesses(updated);
-    setConfirmRedeem(null);
-    
+    if (!customerId || !confirmRedeem) return;
   
+    try {
+      const functions = getFunctions(app, 'europe-west1');
+      const redeemStamp = httpsCallable(functions, 'redeemStamp');
+  
+      await redeemStamp({
+        businessId: confirmRedeem,
+      });
+  
+      // Refresh user data after successful redemption
+      const userRef = doc(db, 'users', customerId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setJoinedBusinesses(userSnap.data().joinedBusinesses || {});
+      }
+  
+      setConfirmRedeem(null);
+    } catch (error) {
+      console.error('Redemption failed:', error);
+      alert(error.message || 'Redemption failed. Please try again.');
+    }
   };
+  
   
 
   return (
