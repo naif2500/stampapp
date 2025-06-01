@@ -4,6 +4,13 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import { usePathname } from 'next/navigation'; // Use usePathname from next/navigation
 
+export const metadata = {
+  title: 'Stampify',
+  description: 'A modern PWA built with Next.js',
+  manifest: '/manifest.json',
+  themeColor: '#6774CA', 
+}
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
