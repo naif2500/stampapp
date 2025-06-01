@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { db, auth } from '@/lib/firebase'; // Assuming auth is exported from lib/firebase
+import { Info, Home, User, Plus } from 'lucide-react';
+import Link from 'next/link';
+import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
-import { onAuthStateChanged } from 'firebase/auth'; // Import Firebase Auth methods
+import { getAuth, onAuthStateChanged ,setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const QrScanner = dynamic(() => import('../components/modals/QrScanner'), { ssr: false });
 
@@ -15,53 +17,64 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication status
   const [isLoading, setIsLoading] = useState(true); // Track loading state
   const router = useRouter();
+  const auth = getAuth();
 
   useEffect(() => {
-    // Check for authentication
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setPersistence(auth, browserLocalPersistence)
+      .catch((error) => {
+        console.error("Error setting persistence:", error);
+      });
+  }, [auth]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // If the user is logged in, check if they are a business user
+        // User is logged in, check if they are a business user
         const businessRef = doc(db, 'businesses', user.uid);
-        getDoc(businessRef).then((docSnap) => {
-          if (docSnap.exists()) {
-            setIsAuthenticated(true); // User is a business, so allow access
-          } else {
-            setIsAuthenticated(false); // Redirect if not a business user
-            router.push('/BusinessLoginPage'); // Redirect to login page if not authenticated
-          }
-        });
+        const docSnap = await getDoc(businessRef);
+        
+        if (docSnap.exists()) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          router.push('/BusinessLoginPage'); // Redirect if not a business user
+        }
       } else {
         setIsAuthenticated(false);
-        router.push('/BusinessLoginPage'); // Redirect to login page if no user is logged in
+        router.push('/BusinessLoginPage'); // Redirect to login if no user is logged in
       }
-      setIsLoading(false); // Stop loading after checking auth status
+      setIsLoading(false); // Set loading to false after checking auth
     });
 
-    return () => unsubscribe(); // Cleanup the listener when the component unmounts
-  }, [router]);
+    return () => unsubscribe(); // Cleanup listener when component unmounts
+  }, [auth, router]);
 
-  useEffect(() => {
-    // Fetch customers only if the user is authenticated
-    if (isAuthenticated) {
-      async function fetchCustomers() {
-        const snapshot = await getDocs(collection(db, 'users'));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setCustomers(data);
-      }
-      fetchCustomers();
-    }
-  }, [isAuthenticated]);
-
-
-  useEffect(() => {
+useEffect(() => {
+  if (isAuthenticated) {
     async function fetchCustomers() {
+      const user = getAuth().currentUser;
+      const businessId = user?.uid;
+      if (!businessId) return;
+
       const snapshot = await getDocs(collection(db, 'users'));
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((customer) =>
+          customer.joinedBusinesses &&
+          customer.joinedBusinesses[businessId]
+        );
+
       setCustomers(data);
     }
 
     fetchCustomers();
-  }, []);
+  }
+}, [isAuthenticated]);
+
+
+
+
+
 
   async function addStamp(userId) {
     const userRef = doc(db, 'users', userId);
@@ -102,7 +115,7 @@ export default function AdminPage() {
   }
   
   if (isLoading) {
-    return <div>Loading...</div>; // Display a loading message while auth state is being determined
+    return <div>Loading...</div>; 
   }
 
   if (!isAuthenticated) {
@@ -110,7 +123,23 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="p-6">
+     <div className="min-h-screen flex flex-col lg:flex-row">
+         {/* Sidebar (desktop) / Navbar (mobile) */}
+         <nav className="fixed bottom-0 left-0 w-full border-t md:border-t-0 bg-white  shadow-lg flex space-y-4 items-center py-3 z-40
+                         lg:static lg:flex-col lg:justify-start lg:items-center lg:w-20 lg:h-screen lg:border-r border-gray-500">
+         <Link href="/AdminActivityPage" className="text-gray-600 hover:text-black">
+       <User className="w-6 h-6" />
+     </Link>
+   
+   
+           <Link href="/admin" className="text-gray-600 hover:text-black"  
+           >
+             <Home className="w-6 h-6" />
+           </Link>
+         </nav>
+   
+         {/* Main Content */}
+         <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10">
       <h1 className="text-xl font-bold mb-4">Customers</h1>
 
       <div className="grid grid-cols-3 font-semibold border-b pb-2 mb-2">
@@ -184,6 +213,7 @@ export default function AdminPage() {
           </button>
         </div>
       )}
+    </main>
     </div>
   );
 }

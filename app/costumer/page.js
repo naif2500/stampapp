@@ -67,22 +67,6 @@ export default function CustomerPage() {
     fetchData();
   }, [customerId]);
 
-  const openAddModal = async () => {
-    const businessSnap = await getDocs(collection(db, 'businesses'));
-    const allBusinesses = businessSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-    // Filter to only unjoined businesses
-    const unjoinedBusinesses = allBusinesses.filter(b => !(b.id in joinedBusinesses));
-  
-    // Only keep the needed fields (id and name)
-    const simplifiedBusinesses = unjoinedBusinesses.map(b => ({
-      id: b.id,
-      name: b.name,
-    }));
-  
-    setAvailableBusinesses(simplifiedBusinesses);
-    setShowAddModal(true);
-  };
   
 
   const joinBusiness = async (businessId) => {
@@ -111,6 +95,14 @@ export default function CustomerPage() {
     await updateDoc(userRef, { joinedBusinesses: updated });
     setJoinedBusinesses(updated);
     setShowAddModal(false);
+
+    await logActivity({
+      userId: customerId,
+      businessId,
+      businessName: name,
+      cardName,
+      type: 'join',
+    });
   };
   
   const handleRedeemConfirm = async () => {
@@ -132,6 +124,18 @@ export default function CustomerPage() {
       }
   
       setConfirmRedeem(null);
+      
+      await logActivity({
+        userId: customerId,
+        businessId: confirmRedeem,
+        businessName: joinedBusinesses[confirmRedeem].name,
+        cardName: joinedBusinesses[confirmRedeem].cardName,
+        type: 'redeem',
+        stampsBefore: joinedBusinesses[confirmRedeem].stamps,
+        stampsAfter: 0,
+      });
+    
+
     } catch (error) {
       console.error('Redemption failed:', error);
       alert(error.message || 'Redemption failed. Please try again.');
@@ -149,17 +153,16 @@ export default function CustomerPage() {
     <User className="w-6 h-6" />
   </Link>
 
-        <button
-          onClick={openAddModal}
+        <Link href="/AddCardPage"
           className="w-14 h-14 bg-[#6774CA] cursor-pointer text-white rounded-full flex items-center justify-center shadow-md transform lg:my-6"
           >
           <Plus className="w-6 h-6" />
-        </button>
+        </Link>
 
-        <a href="#" className="text-gray-600 hover:text-black"   onClick={() => window.location.reload()}
+        <Link href="/costumer" className="text-gray-600 hover:text-black"  
         >
           <Home className="w-6 h-6" />
-        </a>
+        </Link>
       </nav>
 
       {/* Main Content */}

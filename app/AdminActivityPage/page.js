@@ -1,7 +1,13 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import {
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth';
 import {
   collection,
   getDocs,
@@ -17,14 +23,24 @@ import { format } from 'date-fns';
 export default function AdminActivityPage() {
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminBusinessId, setAdminBusinessId] = useState(null);
   const router = useRouter();
+  const auth = getAuth();
 
+  // Set session persistence on mount
   useEffect(() => {
-    const auth = getAuth();
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error('Error setting persistence:', error);
+    });
+  }, [auth]);
+
+  // Auth & business check
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push('/login');
+        setIsAuthenticated(false);
+        router.push('/BusinessLoginPage');
         return;
       }
 
@@ -33,40 +49,57 @@ export default function AdminActivityPage() {
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
-          router.push('/login');
+          console.warn('User document not found');
+          router.push('/BusinessLoginPage');
           return;
         }
 
         const userData = userSnap.data();
 
         if (!userData.businessId) {
-          console.warn('No businessId found for admin');
-          setLoading(false);
+          console.warn('No businessId found for admin user');
+          router.push('/BusinessLoginPage');
           return;
         }
 
+        setIsAuthenticated(true);
         setAdminBusinessId(userData.businessId);
-
-        const q = query(
-          collection(db, 'activityLogs'),
-          where('businessId', '==', userData.businessId),
-          orderBy('timestamp', 'desc')
-        );
-
-        const snap = await getDocs(q);
-        const logs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setActivityLogs(logs);
       } catch (err) {
-        console.error('Error fetching admin or logs:', err);
+        console.error('Error during authentication check:', err);
+        router.push('/BusinessLoginPage');
       } finally {
         setLoading(false);
       }
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [auth, router]);
+
+  // Fetch logs once authenticated
+  useEffect(() => {
+    async function fetchLogs() {
+      if (!adminBusinessId) return;
+
+      try {
+        const q = query(
+          collection(db, 'activityLogs'),
+          where('businessId', '==', adminBusinessId),
+          orderBy('timestamp', 'desc')
+        );
+
+        const snap = await getDocs(q);
+        const logs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setActivityLogs(logs);
+      } catch (error) {
+        console.error('Error fetching activity logs:', error);
+      }
+    }
+
+    fetchLogs();
+  }, [adminBusinessId]);
 
   if (loading) return <p className="p-6">Loading activity...</p>;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -80,7 +113,9 @@ export default function AdminActivityPage() {
               <div className="flex justify-between">
                 <p className="text-gray-800 font-medium">
                   {log.userName || log.userId}{' '}
-                  {log.type === 'redeem' ? 'redeemed a reward' : 'joined your program'}
+                  {log.type === 'redeem'
+                    ? 'redeemed a reward'
+                    : 'joined your program'}
                 </p>
                 <p className="text-sm text-gray-500">
                   {format(

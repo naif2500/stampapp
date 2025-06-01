@@ -14,7 +14,7 @@ export default function BusinessLoginPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/AdminActivityPage'); // Redirect to business dashboard
+      router.push('/admin'); // Redirect to business dashboard
     } catch (err) {
       setError(err.message);
     }
