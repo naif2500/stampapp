@@ -127,7 +127,7 @@ useEffect(() => {
          {/* Sidebar (desktop) / Navbar (mobile) */}
          <nav className="fixed bottom-0 left-0 w-full border-t md:border-t-0 bg-white  shadow-lg flex space-y-4 items-center py-3 z-40
                          lg:static lg:flex-col lg:justify-start lg:items-center lg:w-20 lg:h-screen lg:border-r border-gray-500">
-         <Link href="/AdminActivityPage" className="text-gray-600 hover:text-black">
+         <Link href="/admin" className="text-gray-600 hover:text-black">
        <User className="w-6 h-6" />
      </Link>
    
