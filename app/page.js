@@ -3,6 +3,7 @@ import HeroSection from "./components/Hero";
 import Col from "./components/DoubleCol";
 import FeatureSection from "./components/FeatureSection";
 import CTASection from "./components/CTASection";
+import Footer from "./components/Footer";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
 
 
       </main>
-    
+      <Footer />
     </div>
   );
 }
