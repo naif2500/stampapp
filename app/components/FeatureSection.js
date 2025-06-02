@@ -6,31 +6,31 @@ export default function FeatureSection() {
   const features = [
     {
       Icon: Rocket,
-      title: 'Fast Integration',
-      description: 'Quickly plug our tools into your workflow with minimal setup and instant results.',
+      title: 'Hurtig Implementering',
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.  ',
     },
     {
       Icon: ShieldCheck,
-      title: 'Secure by Design',
-      description: 'We prioritize your security using best practices and modern infrastructure.',
+      title: 'Sikkerhed i Design',
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ',
     },
     {
       Icon: Sparkles,
-      title: 'Beautifully Simple',
-      description: 'Intuitive interfaces and a clean design that feels effortless to use.',
+      title: 'Smukt Simpel',
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ',
     },
   ];
 
   return (
     <section className="py-20 px-6 bg-white">
       <div className="max-w-5xl mx-auto text-center mb-16">
-       <p className="text-[#6774CA] text-lg font-semibold">Features</p>
+       <p className="text-[#6774CA] text-lg font-semibold">Funktioner</p>
 
         <h2 className="text-4xl font-semibold text-gray-800">
-          Why Choose Stampify?
+          Hvorfor vælge Stampify?
         </h2>
         <p className="text-gray-600 mt-4 max-w-xl mx-auto">
-          Our platform is built to simplify your experience and deliver value fast. Here’s what sets us apart.
+          Vores platform er bygget til at forenkle din oplevelse og levere værdi hurtigt. Her er hvad der adskiller os.
         </p>
       </div>
 

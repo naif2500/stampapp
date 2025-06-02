@@ -12,10 +12,10 @@ export default function HeroSection() {
         {/* Left Content */}
         <div className="flex-1 space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-          Scan, Saml, Indløs. <br/> Så nemt er det!
+         Drop papkortene. Gør loyalitet nemt og digitalt.
           </h1>
           <p className="text-lg text-blue-100">
-          Optjen belønninger hver gang du handler, ingen papir, ingen besvær.<br/> Scan din mobil og se dine fordele vokse.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse nec ex lectus. Morbi iaculis quam pellentesque nisl hendrerit suscipit.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">

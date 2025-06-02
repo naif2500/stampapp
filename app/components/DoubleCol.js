@@ -9,7 +9,7 @@ export default function Col() {
       <div className=" mx-auto flex flex-col-reverse md:flex-row items-center px-12 py-16 space-y-10 md:space-y-0">
       <div className="bg-[#333333] rounded-2xl flex-1 relative w-full h-[400px] md:h-[500px]">
           <Image
-            src="/phone-mockup.png" // You need to add the phone mockup to your /public folder
+            src="/phone-mockup.png"
             alt="Phone mockup"
             layout="fill"
             objectFit="contain"
@@ -17,12 +17,11 @@ export default function Col() {
         </div>
 
         <div className="ml-6 flex-1 space-y-4">
-        <p className="text-[#6774CA] text-lg font-semibold">How it works</p>
+        <p className="text-[#6774CA] text-lg font-semibold">Hvordan det virker</p>
           <h1 className="text-4xl text-gray-800 font-semibold leading-tight">
-          Scan, Saml, Indløs. <br/> Så nemt er det!          </h1>
+          Nem loyalitet for alle!          </h1>
           <p className="text-lg text-gray-600">
-          Optjen belønninger hver gang du handler, ingen papir, ingen besvær. Scan din mobil og se dine fordele vokse. Optjen belønninger hver gang du handler, ingen papir, ingen besvær.
-          Scan din mobil og se dine fordele vokse.        </p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse nec ex lectus. Morbi iaculis quam pellentesque nisl hendrerit suscipit.  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse nec ex lectus. Morbi iaculis quam pellentesque nisl hendrerit suscipit.        </p>
 
           
         </div>
