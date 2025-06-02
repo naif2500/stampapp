@@ -5,7 +5,7 @@ import Navbar from './Navbar'
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname()
-  const isHomePage = pathname === '/'
+  const isHomePage = pathname === '/' 
 
   return (
     <>
