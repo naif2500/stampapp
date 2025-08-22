@@ -5,8 +5,7 @@ import ClientLayout from './components/ClientLayout'
 export const metadata = {
   title: 'Stampify',
   description: 'A modern PWA built with Next.js',
-  manifest: '/manifest.json',
-  themeColor: '#6774CA',
+  manifest: '/manifest.json'
 }
 
 const geistSans = Geist({

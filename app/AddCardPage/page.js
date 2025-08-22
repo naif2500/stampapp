@@ -62,31 +62,50 @@ export default function AddBusinessPage() {
     setLoading(false);
   };
 
-  const joinBusiness = async (businessId) => {
-    if (!customerId) return;
+ const joinBusiness = async (businessId) => {
+  if (!customerId) return;
 
-    const ref = doc(db, 'businesses', businessId);
-    const snap = await getDoc(ref);
-    const data = snap.data();
+  const businessRef = doc(db, 'businesses', businessId);
+  const businessSnap = await getDoc(businessRef);
+  const businessData = businessSnap.data();
 
-    const initialStamps = data.type === 'punch' ? data.stampsNeeded : 0;
+  const initialStamps = businessData.type === 'punch' ? businessData.stampsNeeded : 0;
 
-    const userRef = doc(db, 'users', customerId);
-    const updated = {
-      ...joinedBusinesses,
-      [businessId]: {
-        stamps: initialStamps,
-        name: data.name,
-        cardName: data.cardName,
-        type: data.type,
-        logoUrl: data.logoUrl,
-        stampsNeeded: data.stampsNeeded,
-      },
-    };
-
-    await updateDoc(userRef, { joinedBusinesses: updated });
-    router.push('/costumer');
+  // 1️⃣ Update user profile
+  const userRef = doc(db, 'users', customerId);
+  const updated = {
+    ...joinedBusinesses,
+    [businessId]: {
+      stamps: initialStamps,
+      name: businessData.name,
+      cardName: businessData.cardName,
+      type: businessData.type,
+      logoUrl: businessData.logoUrl,
+      stampsNeeded: businessData.stampsNeeded,
+    },
   };
+  await updateDoc(userRef, { joinedBusinesses: updated });
+
+  // 2️⃣ Also update business → add customer record
+  const customerRef = doc(collection(db, `businesses/${businessId}/customers`), customerId);
+  await updateDoc(customerRef, {
+    customerId,
+    stampCount: initialStamps,
+    type: businessData.type,
+    createdAt: new Date(),
+  }).catch(async () => {
+    // if doc doesn't exist yet
+    await setDoc(customerRef, {
+      customerId,
+      stampCount: initialStamps,
+      type: businessData.type,
+      createdAt: new Date(),
+    });
+  });
+
+  router.push('/customer');
+};
+
 
  const filteredBusinesses = availableBusinesses.filter((b) =>
   (b.name || '').toLowerCase().includes(search.toLowerCase())

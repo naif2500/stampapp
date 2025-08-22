@@ -1,20 +1,25 @@
 'use client';
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
+    setError(null);
+    setMessage('');
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/costumer'); // or wherever your customer dashboard is
+      await sendPasswordResetEmail(auth, email, {
+        url: 'https://yourapp.com/login', // Redirect after reset
+      });
+      setMessage('Password reset email sent! Check your inbox.');
     } catch (err) {
       setError(err.message);
     }
@@ -22,33 +27,28 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto mt-20 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4 text-center">Log In</h2>
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
+      <h2 className="text-xl font-bold mb-4 text-center">Forgot Password</h2>
+      <form onSubmit={handleReset} className="flex flex-col gap-4">
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Enter your email"
           className="p-2 border rounded"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
-          type="password"
-          placeholder="Password"
-          className="p-2 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
         {error && <p className="text-red-500 text-sm">{error}</p>}
+        {message && <p className="text-green-500 text-sm">{message}</p>}
         <button type="submit" className="bg-green-600 text-white py-2 rounded">
-          Log In
+          Send Reset Email
         </button>
       </form>
-       <p className="mt-4 text-center text-sm">
+      <p className="mt-4 text-center text-sm">
+        Remember your password?{' '}
         <button
           className="text-blue-600 underline"
-          onClick={() => router.push('/ForgotPasswordPage')}
+          onClick={() => router.push('/login')}
         >
-          Forgot Password?
+          Log In
         </button>
       </p>
     </div>
