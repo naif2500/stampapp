@@ -56,20 +56,16 @@ useEffect(() => {
       const businessId = user?.uid;
       if (!businessId) return;
 
-      const snapshot = await getDocs(collection(db, 'users'));
-      const data = snapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((customer) =>
-          customer.joinedBusinesses &&
-          customer.joinedBusinesses[businessId]
-        );
-
+      // fetch customers from business subcollection
+      const snapshot = await getDocs(collection(db, `businesses/${businessId}/customers`));
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setCustomers(data);
     }
 
     fetchCustomers();
   }
 }, [isAuthenticated]);
+
 
 
 
@@ -154,7 +150,14 @@ useEffect(() => {
             key={customer.id}
             className="grid grid-cols-3 items-center border-b py-4"
           >
-            <div className="truncate">{customer.id}</div>
+            <div className="truncate">
+        <Link
+          href={`/admin/customers/${customer.id}`}
+          className="text-blue-600 hover:underline"
+        >
+          {customer.id}
+        </Link>
+      </div>
             {(() => {
               const stampBusinesses = customer.joinedBusinesses
                 ? Object.values(customer.joinedBusinesses).filter(b => b.type === 'stamp')
