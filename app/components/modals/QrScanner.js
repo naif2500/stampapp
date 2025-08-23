@@ -5,7 +5,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import StampConfirmationModal from './StampConfirmationModal';
+import StampConfirmationModal from './components/StampConfirmationModal';
 
 export default function QrScanner({ businessId }) {
   const [scannedCustomer, setScannedCustomer] = useState(null);
