@@ -72,32 +72,45 @@ useEffect(() => {
 
 
 
-  async function addStamp(userId) {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    const userData = userSnap.data();
+async function addStamp(userId) {
+  const userRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) return;
 
-    const updatedBusinesses = { ...userData.joinedBusinesses };
+  const userData = userSnap.data();
+  const updatedBusinesses = { ...userData.joinedBusinesses };
 
-    for (const [businessId, card] of Object.entries(updatedBusinesses)) {
-      if (card.type === 'stamp') {
-        updatedBusinesses[businessId].stamps = (card.stamps || 0) + 1;
-      }
+  for (const [businessId, card] of Object.entries(updatedBusinesses)) {
+    if (card.type === 'stamp') {
+      // increment locally
+      const newStampCount = (card.stamps || 0) + 1;
+      updatedBusinesses[businessId].stamps = newStampCount;
+
+      // 🔥 Update business’ customer subcollection
+      const businessCustomerRef = doc(db, `businesses/${businessId}/customers`, userId);
+      await updateDoc(businessCustomerRef, {
+        stampCount: newStampCount,
+        lastStampTime: new Date()
+      });
     }
-
-    await updateDoc(userRef, {
-      joinedBusinesses: updatedBusinesses,
-      lastStampTime: new Date()
-    });
-
-    setCustomers(prev =>
-      prev.map(c =>
-        c.id === userId
-          ? { ...c, joinedBusinesses: updatedBusinesses }
-          : c
-      )
-    );
   }
+
+  // 🔥 Update user’s own record
+  await updateDoc(userRef, {
+    joinedBusinesses: updatedBusinesses,
+    lastStampTime: new Date()
+  });
+
+  // 🔥 Update admin UI
+  setCustomers(prev =>
+    prev.map(c =>
+      c.id === userId
+        ? { ...c, joinedBusinesses: updatedBusinesses }
+        : c
+    )
+  );
+}
+
 
   async function handleScanSuccess(scannedId) {
     setScanning(false);
