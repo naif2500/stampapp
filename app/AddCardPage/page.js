@@ -2,7 +2,7 @@
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, getDocs, collection, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AddCardButton } from '../components/AddCardButton';
 
