@@ -1,6 +1,5 @@
 import './globals.css'
 import { Geist, Geist_Mono } from 'next/font/google'
-import ClientLayout from './components/ClientLayout'
 
 export const metadata = {
   title: 'Stampify',
@@ -22,7 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClientLayout>{children}</ClientLayout>
+       {children}
       </body>
     </html>
   )

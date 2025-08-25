@@ -190,7 +190,7 @@ export default function CustomerPage() {
                 stampsNeeded={data.stampsNeeded}
                 onClick={() => {
                   if (data.type === 'stamp') {
-                    setShowQrForBusinessId(businessId);
+                    router.push(`/cards/${businessId}`);
                   } else {
                     setConfirmRedeem(businessId);
                   }
@@ -212,6 +212,8 @@ export default function CustomerPage() {
         {showQrForBusinessId && (
           <QrModal
             customerId={customerId}
+            logoUrl={joinedBusinesses[showQrForBusinessId]?.logoUrl}
+            cardName={joinedBusinesses[showQrForBusinessId]?.cardName}
             onClose={() => setShowQrForBusinessId(null)}
           />
         )}
