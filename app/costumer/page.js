@@ -96,13 +96,7 @@ export default function CustomerPage() {
     setJoinedBusinesses(updated);
     setShowAddModal(false);
 
-    await logActivity({
-      userId: customerId,
-      businessId,
-      businessName: name,
-      cardName,
-      type: 'join',
-    });
+    
   };
   
   const handleRedeemConfirm = async () => {
@@ -125,15 +119,7 @@ export default function CustomerPage() {
   
       setConfirmRedeem(null);
       
-      await logActivity({
-        userId: customerId,
-        businessId: confirmRedeem,
-        businessName: joinedBusinesses[confirmRedeem].name,
-        cardName: joinedBusinesses[confirmRedeem].cardName,
-        type: 'redeem',
-        stampsBefore: joinedBusinesses[confirmRedeem].stamps,
-        stampsAfter: 0,
-      });
+     
     
 
     } catch (error) {

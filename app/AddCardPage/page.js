@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ChevronRight } from 'lucide-react';
+import FixedNavbar from '../components/FixedNavbar';
+
 
 export default function AddBusinessPage() {
   const router = useRouter();
@@ -52,12 +54,8 @@ export default function AddBusinessPage() {
 
   return (
     <div className="min-h-screen bg-white px-4 pt-20 py-6 lg:px-24">
-      <button
-        onClick={() => router.back()}
-        className="text-sm text-blue-600 hover:underline absolute top-20 left-4 lg:left-28"
-      >
-        ← Back
-      </button>
+      <FixedNavbar title="Businesses" />
+
 
       <h2 className="text-2xl font-bold mb-6 mt-2">
         Add a Stamp Card

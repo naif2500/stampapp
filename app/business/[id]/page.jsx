@@ -6,6 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard'; // ✅ import
 import { AddCardButton } from '../../components/AddCardButton';
+import FixedNavbar from '../../components/FixedNavbar';
 
 export default function BusinessDetailPage() {
   const { id } = useParams();
@@ -77,12 +78,8 @@ export default function BusinessDetailPage() {
 
   return (
     <div className="min-h-screen bg-white px-4 pt-20 py-6 lg:px-24">
-      <button
-        onClick={() => router.back()}
-        className="text-sm text-blue-600 hover:underline absolute top-20 left-4 lg:left-28"
-      >
-        ← Back
-      </button>
+      
+      <FixedNavbar title="Business detail" />
 
       {/* Top section: logo + name */}
       <div className="flex flex-col items-center text-center mb-8">

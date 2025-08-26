@@ -4,6 +4,7 @@
 import React from 'react';
 
 const LoyaltyCard = ({ businessId, name, cardName, stamps, stampsNeeded, onClick, logoUrl}) => {
+
   return (
     <div
       key={businessId}
@@ -21,6 +22,15 @@ const LoyaltyCard = ({ businessId, name, cardName, stamps, stampsNeeded, onClick
       </div>
       <h3 className="text-4xl font-bold text-[#333]">{cardName}</h3>
       <p className="text-sm text-gray-600 mt-2">Spar 15% på hvert køb</p>
+
+
+
+      {/* Redeem Now Label */}
+      {stamps >= stampsNeeded && (
+        <div className="absolute bottom-3 right-3 bg-[#6774CA] text-white text-xs px-3 py-1 rounded-full shadow-md">
+          Redeem Now
+        </div>
+      )}
     </div>
   );
 };

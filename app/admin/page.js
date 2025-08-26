@@ -72,7 +72,7 @@ useEffect(() => {
 
 
 
-async function addStamp(userId) {
+async function updateStampOrRedeem(userId) {
   const userRef = doc(db, 'users', userId);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) return;
@@ -82,26 +82,44 @@ async function addStamp(userId) {
 
   for (const [businessId, card] of Object.entries(updatedBusinesses)) {
     if (card.type === 'stamp') {
-      // increment locally
-      const newStampCount = (card.stamps || 0) + 1;
-      updatedBusinesses[businessId].stamps = newStampCount;
+      const currentStamps = card.stamps || 0;
+      const needed = card.stampsNeeded || 9; // fallback to 9 if missing
 
-      // 🔥 Update business’ customer subcollection
-      const businessCustomerRef = doc(db, `businesses/${businessId}/customers`, userId);
-      await updateDoc(businessCustomerRef, {
-        stampCount: newStampCount,
-        lastStampTime: new Date()
-      });
+      if (currentStamps + 1 < needed) {
+        // ✅ Still collecting stamps → increment
+        updatedBusinesses[businessId].stamps = currentStamps + 1;
+
+        await updateDoc(doc(db, `businesses/${businessId}/customers`, userId), {
+          stampCount: currentStamps + 1,
+          lastStampTime: new Date()
+        });
+
+        await updateDoc(userRef, {
+          joinedBusinesses: updatedBusinesses,
+          lastStampTime: new Date()
+        });
+
+      } else {
+        // 🎉 Redeem flow → reset stamps to 0
+        updatedBusinesses[businessId].stamps = 0;
+
+        await updateDoc(doc(db, `businesses/${businessId}/customers`, userId), {
+          stampCount: 0,
+          lastRedeemTime: new Date()
+        });
+
+        await updateDoc(userRef, {
+          joinedBusinesses: updatedBusinesses,
+          lastRedeemTime: new Date()
+        });
+
+        // Optional: add a log entry (future-proofing)
+        // You could also push this into a `logs` subcollection
+      }
     }
   }
 
-  // 🔥 Update user’s own record
-  await updateDoc(userRef, {
-    joinedBusinesses: updatedBusinesses,
-    lastStampTime: new Date()
-  });
-
-  // 🔥 Update admin UI
+  // 🔥 Update Admin UI
   setCustomers(prev =>
     prev.map(c =>
       c.id === userId
@@ -110,6 +128,7 @@ async function addStamp(userId) {
     )
   );
 }
+
 
 
   async function handleScanSuccess(scannedId) {
@@ -199,11 +218,17 @@ async function addStamp(userId) {
             })()}
             <div>
               <button
-                onClick={() => addStamp(customer.id)}
-                className="px-3 py-1 bg-blue-500 text-white rounded"
-              >
-                Add Stamp
-              </button>
+  onClick={() => updateStampOrRedeem(customer.id)}
+  className="px-3 py-1 bg-blue-500 text-white rounded"
+>
+  {customer.joinedBusinesses &&
+   Object.values(customer.joinedBusinesses).some(
+     b => b.type === 'stamp' && b.stamps === b.stampsNeeded
+   )
+    ? "Redeem"
+    : "Add Stamp"}
+</button>
+
             </div>
           </li>
         ))}

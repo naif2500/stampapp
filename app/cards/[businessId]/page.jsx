@@ -7,6 +7,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard';
 import QrModal from '../../components/modals/QrModal';
+import FixedNavbar from '../../components/FixedNavbar';
 
 export default function CardDetailPage() {
   const { businessId } = useParams();
@@ -50,40 +51,51 @@ export default function CardDetailPage() {
 
   return (
     <div className="min-h-screen p-6 flex flex-col items-center">
+        
+      <FixedNavbar title="Card detail" />
+        
       {/* Display the Loyalty Card */}
-      <LoyaltyCard {...cardData} />
+       <div className="mt-20 w-full max-w-md px-4">
+    <LoyaltyCard {...cardData} />
+  </div>
 
-      {/* Card details */}
-      <div className="mt-6 w-full max-w-md bg-white shadow-md rounded-xl p-4">
-        <h2 className="text-xl font-bold mb-2">{cardData.name}</h2>
-        <p className="text-gray-700 mb-2">{cardData.cardName}</p>
-        <p className="text-gray-600">
-          Stamps: {cardData.stamps} / {cardData.stampsNeeded}
-        </p>
-        {cardData.type === 'stamp' && (
-          <p className="text-sm text-gray-500 mt-2">Scan your QR to add stamps.</p>
-        )}
-      </div>
+  {/* Logs Container */}
+  <div className="mt-6 w-full max-w-md bg-white shadow-md rounded-xl p-4">
+    <h2 className="text-lg font-semibold mb-4">Logs</h2>
+    <div className="grid grid-cols-2 gap-y-3 text-sm">
+      {/* Example log rows */}
+      <div className="text-gray-600">2025-08-25</div>
+      <div className="text-gray-800">You received a stamp</div>
 
-      {/* Show QR button */}
-      {cardData.type === 'stamp' && customerId && (
-        <button
-          onClick={() => setShowQr(true)}
-          className="mt-6 px-6 py-3 bg-[#6774CA] text-white rounded-xl font-semibold shadow-md"
-        >
-          Show QR Code
-        </button>
-      )}
+      <div className="text-gray-600">2025-08-20</div>
+      <div className="text-gray-800">You redeemed</div>
 
-      {/* QR Modal */}
-      {showQr && (
-        <QrModal
-          customerId={customerId}
-          onClose={() => setShowQr(false)}
-          logoUrl={cardData.logoUrl}
-          cardName={cardData.cardName}
-        />
-      )}
+      <div className="text-gray-600">2025-08-15</div>
+      <div className="text-gray-800">You received a stamp</div>
     </div>
+  </div>
+
+  {/* Fixed Bottom Button */}
+  {cardData.type === 'stamp' && customerId && (
+    <div className="fixed bottom-6 w-full px-6">
+      <button
+        onClick={() => setShowQr(true)}
+        className="w-full py-3 bg-[#6774CA] text-white rounded-xl font-semibold shadow-md"
+      >
+        Show QR Code
+      </button>
+    </div>
+  )}
+
+  {/* QR Modal */}
+  {showQr && (
+    <QrModal
+      customerId={customerId}
+      onClose={() => setShowQr(false)}
+      logoUrl={cardData.logoUrl}
+      cardName={cardData.cardName}
+    />
+  )}
+</div>
   );
 }
