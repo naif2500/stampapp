@@ -99,7 +99,7 @@ async function updateStampOrRedeem(userId) {
           lastStampTime: new Date()
         });
 
-      } else {
+      } else if (currentStamps + 1 === needed) {
         // 🎉 Redeem flow → reset stamps to 0
         updatedBusinesses[businessId].stamps = 0;
 
