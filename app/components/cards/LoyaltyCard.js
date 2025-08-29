@@ -1,9 +1,28 @@
-// components/LoyaltyCard.js
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
-const LoyaltyCard = ({ businessId, name, cardName, stamps, stampsNeeded, onClick, logoUrl}) => {
+const LoyaltyCard = ({ businessId, userId, name, cardName, stampsNeeded, onClick, logoUrl }) => {
+  const [stamps, setStamps] = useState(0);
+
+  useEffect(() => {
+    if (!userId || !businessId) return;
+
+    const userCardRef = doc(db, `businesses/${businessId}/customers`, userId);
+
+    // Listen in real-time
+    const unsubscribe = onSnapshot(userCardRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setStamps(data.stampCount ?? 0);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, [businessId, userId]);
+
 
   return (
     <div

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Info, Home, User, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, getDoc, getDocs, doc} from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
@@ -83,13 +83,16 @@ async function updateStampOrRedeem(userId) {
   for (const [businessId, card] of Object.entries(updatedBusinesses)) {
     if (card.type === 'stamp') {
       const currentStamps = card.stamps || 0;
-      const needed = card.stampsNeeded || 9; // fallback to 9 if missing
+      const needed = card.stampsNeeded || 9;
 
-      if (currentStamps + 1 < needed) {
-        // ✅ Still collecting stamps → increment
+      const customerRef = doc(db, `businesses/${businessId}/customers`, userId);
+      const historyRef = collection(customerRef, "history");
+
+      if (currentStamps < needed) {
+        // ✅ Add a stamp
         updatedBusinesses[businessId].stamps = currentStamps + 1;
 
-        await updateDoc(doc(db, `businesses/${businessId}/customers`, userId), {
+        await updateDoc(customerRef, {
           stampCount: currentStamps + 1,
           lastStampTime: new Date()
         });
@@ -99,11 +102,16 @@ async function updateStampOrRedeem(userId) {
           lastStampTime: new Date()
         });
 
-      } else if (currentStamps + 1 === needed) {
-        // 🎉 Redeem flow → reset stamps to 0
+        await addDoc(historyRef, {
+          type: "stamp",
+          timestamp: new Date()
+        });
+
+      } else if (currentStamps === needed) {
+        // 🎉 Redeem (manual trigger when already full)
         updatedBusinesses[businessId].stamps = 0;
 
-        await updateDoc(doc(db, `businesses/${businessId}/customers`, userId), {
+        await updateDoc(customerRef, {
           stampCount: 0,
           lastRedeemTime: new Date()
         });
@@ -113,8 +121,10 @@ async function updateStampOrRedeem(userId) {
           lastRedeemTime: new Date()
         });
 
-        // Optional: add a log entry (future-proofing)
-        // You could also push this into a `logs` subcollection
+        await addDoc(historyRef, {
+          type: "redeem",
+          timestamp: new Date()
+        });
       }
     }
   }
@@ -130,12 +140,11 @@ async function updateStampOrRedeem(userId) {
 }
 
 
-
   async function handleScanSuccess(scannedId) {
     setScanning(false);
     const user = customers.find(c => c.id === scannedId);
     if (user) {
-      await addStamp(user.id);
+      await updateStampOrRedeem(user.id);
       alert(`Added stamp for customer ${scannedId}`);
     } else {
       alert(`No user found with ID: ${scannedId}`);

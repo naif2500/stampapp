@@ -11,29 +11,37 @@ export default function QrScanner({ businessId }) {
   const [scannedCustomer, setScannedCustomer] = useState(null);
 
   useEffect(() => {
-    const html5QrCode = new Html5Qrcode("qr-reader");
+  const html5QrCode = new Html5Qrcode("qr-reader");
 
-    Html5Qrcode.getCameras().then((devices) => {
-      if (devices && devices.length) {
-        const cameraId = devices[0].id;
-        html5QrCode.start(
-          cameraId,
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          async (decodedText) => {
-            await handleScan(decodedText);
-            html5QrCode.stop();
-          },
-          (errorMessage) => {
-            // ignore errors
-          }
-        );
-      }
-    });
+  Html5Qrcode.getCameras().then((devices) => {
+    if (devices && devices.length) {
+      // Try to find the back (environment) camera
+      const backCamera = devices.find((device) =>
+        device.label.toLowerCase().includes("back") ||
+        device.label.toLowerCase().includes("environment")
+      );
 
-    return () => {
-      html5QrCode.stop().catch(() => {});
-    };
-  }, []);
+      const cameraId = backCamera ? backCamera.id : devices[0].id;
+
+      html5QrCode.start(
+        cameraId,
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          await handleScan(decodedText);
+          html5QrCode.stop();
+        },
+        (errorMessage) => {
+          // ignore errors
+        }
+      );
+    }
+  });
+
+  return () => {
+    html5QrCode.stop().catch(() => {});
+  };
+}, []);
+
 
   const handleScan = async (customerId) => {
     if (!businessId || !customerId) return;
