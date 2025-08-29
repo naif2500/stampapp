@@ -15,9 +15,11 @@ import {
   updateDoc,
   collection,
   getDocs,
+  onSnapshot,
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { useRef } from "react";
 
 
 
@@ -29,6 +31,9 @@ export default function CustomerPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [customerId, setCustomerId] = useState(null); // ✅ dynamic state
   const [showQrForBusinessId, setShowQrForBusinessId] = useState(null);
+  const [notification, setNotification] = useState(null);
+  const prevDataRef = useRef({}); // 🔥 store previous state without triggering re-render
+
 
 
   // ✅ Fetch authenticated user ID
@@ -53,19 +58,37 @@ export default function CustomerPage() {
     return () => unsubscribe();
   }, [router]);
 
-  useEffect(() => {
-    if (!customerId) return;
-  
-    async function fetchData() {
-      const userRef = doc(db, 'users', customerId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        setJoinedBusinesses(userSnap.data().joinedBusinesses || {});
+useEffect(() => {
+  if (!customerId) return;
+
+  const userRef = doc(db, "users", customerId);
+
+  const unsubscribe = onSnapshot(userRef, (userSnap) => {
+    if (userSnap.exists()) {
+      const newData = userSnap.data().joinedBusinesses || {};
+      const oldData = prevDataRef.current;
+
+      for (const [businessId, newCard] of Object.entries(newData)) {
+        const oldCard = oldData[businessId];
+        if (
+          oldCard &&
+          newCard.type === "stamp" &&
+          newCard.stamps > (oldCard.stamps || 0)
+        ) {
+          setNotification(`You received a stamp for ${newCard.name}! 🎉`);
+          setTimeout(() => setNotification(null), 3000);
+        }
       }
+
+      prevDataRef.current = newData; // ✅ update ref for next comparison
+      setJoinedBusinesses(newData);
     }
-  
-    fetchData();
-  }, [customerId]);
+  });
+
+  return () => unsubscribe();
+}, [customerId]);
+
+
 
   
 
@@ -132,6 +155,13 @@ export default function CustomerPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
+
+      {notification && (
+  <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
+    {notification}
+  </div>
+)}
+
       {/* Sidebar (desktop) / Navbar (mobile) */}
       <nav className="fixed bottom-0 left-0 w-full border-t md:border-t-0 bg-white  shadow-lg flex justify-around items-center py-3 z-40
                       lg:static lg:flex-col lg:justify-start lg:items-center lg:w-20 lg:h-screen lg:border-r border-gray-500">
@@ -168,6 +198,7 @@ export default function CustomerPage() {
               <LoyaltyCard
                 key={businessId}
                 businessId={businessId}
+                userId={customerId}
                 name={data.name}
                 cardName={data.cardName}
                 stamps={data.stamps}
