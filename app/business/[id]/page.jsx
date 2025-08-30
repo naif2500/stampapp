@@ -48,19 +48,23 @@ export default function BusinessDetailPage() {
 
     // Update user profile
     const userRef = doc(db, 'users', customerId);
-    await updateDoc(userRef, {
-      joinedBusinesses: {
-        ...joinedBusinesses,
-        [business.id]: {
-          stamps: initialStamps,
-          name: business.name,
-          cardName: business.cardName,
-          type: business.type,
-          logoUrl: business.logoUrl,
-          stampsNeeded: business.stampsNeeded,
-        },
-      },
-    });
+const userSnap = await getDoc(userRef);
+const currentJoined = userSnap.data()?.joinedBusinesses || {};
+
+await updateDoc(userRef, {
+  joinedBusinesses: {
+    ...currentJoined,
+    [business.id]: {
+      stamps: initialStamps,
+      name: business.name,
+      cardName: business.cardName,
+      type: business.type,
+      logoUrl: business.logoUrl,
+      stampsNeeded: business.stampsNeeded,
+    },
+  },
+});
+
 
     // Update business customers
     const customerRef = doc(collection(db, `businesses/${business.id}/customers`), customerId);
@@ -71,7 +75,7 @@ export default function BusinessDetailPage() {
       createdAt: new Date(),
     });
 
-    router.push('/customer');
+    router.push('/costumer');
   };
 
   if (!business) return <p className="text-center mt-20">Loading...</p>;

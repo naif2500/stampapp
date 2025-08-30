@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Info, Home, User, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, getDoc, getDocs, doc} from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, getDoc, getDocs, doc} from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
@@ -50,20 +50,19 @@ export default function AdminPage() {
   }, [auth, router]);
 
 useEffect(() => {
-  if (isAuthenticated) {
-    async function fetchCustomers() {
-      const user = getAuth().currentUser;
-      const businessId = user?.uid;
-      if (!businessId) return;
+  if (!isAuthenticated) return;
 
-      // fetch customers from business subcollection
-      const snapshot = await getDocs(collection(db, `businesses/${businessId}/customers`));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setCustomers(data);
-    }
+  const user = getAuth().currentUser;
+  const businessId = user?.uid;
+  if (!businessId) return;
 
-    fetchCustomers();
-  }
+  const customersRef = collection(db, `businesses/${businessId}/customers`);
+  const unsubscribe = onSnapshot(customersRef, (snapshot) => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setCustomers(data);
+  });
+
+  return () => unsubscribe(); // cleanup listener
 }, [isAuthenticated]);
 
 
@@ -200,25 +199,23 @@ async function updateStampOrRedeem(userId) {
         </Link>
       </div>
             {(() => {
-              const stampBusinesses = customer.joinedBusinesses
-                ? Object.values(customer.joinedBusinesses).filter(b => b.type === 'stamp')
-                : [];
+                const card = customer.joinedBusinesses
+                  ? Object.values(customer.joinedBusinesses).find(b => b.type === 'stamp')
+                  : null;
 
-              const totalStamps = stampBusinesses.reduce(
-                (acc, b) => acc + (b.stamps || 0),
-                0
-              );
+              const stamps = card?.stamps || 0;
+  const stampsNeeded = card?.stampsNeeded || 9;
 
               return (
                 <div className="flex flex-col gap-1 max-w-xs w-full">
                   <div className="text-sm font-medium">
-                    {totalStamps}/9
+                    {stamps}/{stampsNeeded}
                   </div>
                   <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-500 transition-all duration-300"
                       style={{
-                        width: `${Math.min((totalStamps / 9) * 100, 100)}%`
+                        width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%`
                       }}
                     />
                   </div>
