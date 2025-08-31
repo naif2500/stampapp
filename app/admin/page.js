@@ -185,60 +185,53 @@ async function updateStampOrRedeem(userId) {
       </div>
 
       <ul>
-        {customers.map(customer => (
-          <li
-            key={customer.id}
-            className="grid grid-cols-3 items-center border-b py-4"
+  {customers.map(customer => {
+    const stamps = customer.stampCount || 0;
+    const stampsNeeded = customer.stampsNeeded || 9; // fallback
+    const cardName = customer.cardName || "Card"; // fallback
+
+    return (
+      <li
+        key={customer.id}
+        className="grid grid-cols-3 items-center border-b py-4"
+      >
+        {/* Customer Name / Link */}
+        <div className="truncate">
+          <Link
+            href={`/admin/customers/${customer.id}`}
+            className="text-blue-600 hover:underline"
           >
-            <div className="truncate">
-        <Link
-          href={`/admin/customers/${customer.id}`}
-          className="text-blue-600 hover:underline"
-        >
-          {customer.id}
-        </Link>
-      </div>
-            {(() => {
-                const card = customer.joinedBusinesses
-                  ? Object.values(customer.joinedBusinesses).find(b => b.type === 'stamp')
-                  : null;
+            {customer.name || customer.id}
+          </Link>
+        </div>
 
-              const stamps = card?.stamps || 0;
-  const stampsNeeded = card?.stampsNeeded || 9;
+        {/* Stamp Progress */}
+        <div className="flex flex-col gap-1 max-w-xs w-full">
+          <div className="text-sm font-medium">
+            {stamps}/{stampsNeeded}
+          </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 transition-all duration-300"
+              style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
 
-              return (
-                <div className="flex flex-col gap-1 max-w-xs w-full">
-                  <div className="text-sm font-medium">
-                    {stamps}/{stampsNeeded}
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 transition-all duration-300"
-                      style={{
-                        width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%`
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-            <div>
-              <button
-  onClick={() => updateStampOrRedeem(customer.id)}
-  className="px-3 py-1 bg-blue-500 text-white rounded"
->
-  {customer.joinedBusinesses &&
-   Object.values(customer.joinedBusinesses).some(
-     b => b.type === 'stamp' && b.stamps === b.stampsNeeded
-   )
-    ? "Redeem"
-    : "Add Stamp"}
-</button>
+        {/* Action Button */}
+        <div>
+          <button
+            onClick={() => updateStampOrRedeem(customer.id)}
+            className="px-3 py-1 bg-blue-500 text-white rounded"
+          >
+            {stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
+          </button>
+        </div>
+      </li>
+    );
+  })}
+</ul>
 
-            </div>
-          </li>
-        ))}
-      </ul>
 
       <div className="absolute bottom-2 right-2 mb-6">
         <button
