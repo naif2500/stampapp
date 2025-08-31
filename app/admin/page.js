@@ -16,6 +16,12 @@ export default function AdminPage() {
   const [scanning, setScanning] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication status
   const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // 👈 Adjust as needed
+
+
+
   const router = useRouter();
   const auth = getAuth();
 
@@ -158,6 +164,19 @@ async function updateStampOrRedeem(userId) {
     return null; // Return nothing or show an unauthorized page if not authenticated
   }
 
+  // 🔍 Search filter
+  const filteredCustomers = customers.filter(c =>
+    (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // 📄 Pagination
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const paginatedCustomers = filteredCustomers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
      <div className="min-h-screen flex flex-col lg:flex-row">
          {/* Sidebar (desktop) / Navbar (mobile) */}
@@ -178,6 +197,18 @@ async function updateStampOrRedeem(userId) {
          <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10">
       <h1 className="text-xl font-bold mb-4">Customers</h1>
 
+        <input
+          type="text"
+          placeholder="Search customers..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // reset to first page on search
+          }}
+          className="w-full p-2 border rounded mb-4"
+        />
+
+
       <div className="grid grid-cols-3 font-semibold border-b pb-2 mb-2">
         <div>Customer</div>
         <div>Stamps</div>
@@ -185,7 +216,7 @@ async function updateStampOrRedeem(userId) {
       </div>
 
       <ul>
-  {customers.map(customer => {
+    {paginatedCustomers.map(customer => {
     const stamps = customer.stampCount || 0;
     const stampsNeeded = customer.stampsNeeded || 9; // fallback
     const cardName = customer.cardName || "Card"; // fallback
@@ -231,6 +262,26 @@ async function updateStampOrRedeem(userId) {
     );
   })}
 </ul>
+
+       {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span>Page {currentPage} of {totalPages}</span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
 
 
       <div className="absolute bottom-2 right-2 mb-6">
