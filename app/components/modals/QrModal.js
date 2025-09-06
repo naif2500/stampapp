@@ -1,8 +1,30 @@
-// components/QrModal.jsx
 'use client';
+import { useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function QrModal({ customerId, onClose, logoUrl, cardName }) {
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const createToken = async () => {
+      const oneTimeToken = uuidv4(); // Generate unique token
+      setToken(oneTimeToken);
+
+      // Save token in Firestore under this customer, with timestamp
+      const tokenRef = doc(db, `tokens/${oneTimeToken}`);
+      await setDoc(tokenRef, {
+        customerId,
+        createdAt: new Date(),
+        used: false,
+      });
+    };
+
+    createToken();
+  }, [customerId]);
+
   return (
     <div className="fixed inset-0 bg-[#6774CA] bg-opacity-50 flex justify-center items-center z-50">
       <button
@@ -20,7 +42,7 @@ export default function QrModal({ customerId, onClose, logoUrl, cardName }) {
         />
         <h2 className="text-lg font-semibold mt-6 mb-2">{cardName}</h2>
         <p className="mb-6 text-xs">Scan this QR code to get your stamps!</p>
-        <QRCodeCanvas value={customerId} size={180} />
+        {token && <QRCodeCanvas value={token} size={180} />}
       </div>
     </div>
   );

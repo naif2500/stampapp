@@ -299,6 +299,7 @@ async function updateStampOrRedeem(userId) {
           <button
             onClick={() => setScanning(false)}
             className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
+            updateStampOrRedeem={updateStampOrRedeem}
           >
             Cancel
           </button>
