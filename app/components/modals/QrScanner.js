@@ -1,13 +1,11 @@
-// components/QrScanner.jsx
 'use client';
 
 import { Html5Qrcode } from 'html5-qrcode';
-import { useEffect, useState } from 'react';
-import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { useEffect } from 'react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import StampConfirmationModal from './StampConfirmationModal';
 
-export default function QrScanner({ updateStampOrRedeem, onScanSuccess }) {
+export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
   useEffect(() => {
     const html5QrCode = new Html5Qrcode("qr-reader");
 
@@ -27,7 +25,9 @@ export default function QrScanner({ updateStampOrRedeem, onScanSuccess }) {
           await handleScan(decodedText);
           html5QrCode.stop();
         },
-        (err) => {}
+        (err) => {
+          // ignore scan errors
+        }
       );
     });
 
@@ -36,9 +36,9 @@ export default function QrScanner({ updateStampOrRedeem, onScanSuccess }) {
     };
   }, []);
 
-  const handleScan = async (token) => {
+  const handleScan = async (scannedToken) => {
     try {
-      const tokenRef = doc(db, "tokens", token);
+      const tokenRef = doc(db, `businesses/${businessId}/tokens`, scannedToken);
       const tokenSnap = await getDoc(tokenRef);
 
       if (!tokenSnap.exists()) {
@@ -52,7 +52,7 @@ export default function QrScanner({ updateStampOrRedeem, onScanSuccess }) {
         return;
       }
 
-      // ✅ Call your existing function to update stamps
+      // ✅ Use your existing stamp/redeem logic
       await updateStampOrRedeem(tokenData.customerId);
 
       // Mark token as used
@@ -67,4 +67,3 @@ export default function QrScanner({ updateStampOrRedeem, onScanSuccess }) {
 
   return <div id="qr-reader" style={{ width: "100%" }} />;
 }
-

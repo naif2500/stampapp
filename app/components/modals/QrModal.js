@@ -5,16 +5,18 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { v4 as uuidv4 } from 'uuid';
 
-export default function QrModal({ customerId, onClose, logoUrl, cardName }) {
+export default function QrModal({ businessId, customerId, onClose, logoUrl, cardName }) {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
     const createToken = async () => {
+      if (!businessId || !customerId) return;
+
       const oneTimeToken = uuidv4(); // Generate unique token
       setToken(oneTimeToken);
 
-      // Save token in Firestore under this customer, with timestamp
-      const tokenRef = doc(db, `tokens/${oneTimeToken}`);
+      // Save token in Firestore under this business
+      const tokenRef = doc(db, `businesses/${businessId}/tokens`, oneTimeToken);
       await setDoc(tokenRef, {
         customerId,
         createdAt: new Date(),
@@ -23,7 +25,7 @@ export default function QrModal({ customerId, onClose, logoUrl, cardName }) {
     };
 
     createToken();
-  }, [customerId]);
+  }, [businessId, customerId]);
 
   return (
     <div className="fixed inset-0 bg-[#6774CA] bg-opacity-50 flex justify-center items-center z-50">

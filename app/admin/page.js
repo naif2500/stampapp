@@ -25,6 +25,9 @@ export default function AdminPage() {
   const router = useRouter();
   const auth = getAuth();
 
+  const [businessId, setBusinessId] = useState(null);
+
+
   useEffect(() => {
     setPersistence(auth, browserLocalPersistence)
       .catch((error) => {
@@ -41,6 +44,7 @@ export default function AdminPage() {
         
         if (docSnap.exists()) {
           setIsAuthenticated(true);
+          setBusinessId(user.uid);
         } else {
           setIsAuthenticated(false);
           router.push('/BusinessLoginPage'); // Redirect if not a business user
@@ -293,18 +297,22 @@ async function updateStampOrRedeem(userId) {
         </button>
       </div>
 
-      {scanning && (
-        <div className="mb-6 border p-4 rounded">
-          <QrScanner onScanSuccess={handleScanSuccess} />
-          <button
-            onClick={() => setScanning(false)}
-            className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
-            updateStampOrRedeem={updateStampOrRedeem}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+      {scanning && businessId && (
+  <div className="mb-6 border p-4 rounded">
+    <QrScanner
+      businessId={businessId}
+      updateStampOrRedeem={updateStampOrRedeem}
+      onScanSuccess={handleScanSuccess}
+    />
+    <button
+      onClick={() => setScanning(false)}
+      className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
     </main>
     </div>
   );
