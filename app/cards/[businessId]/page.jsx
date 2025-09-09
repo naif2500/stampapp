@@ -90,6 +90,7 @@ export default function CardDetailPage() {
   {/* QR Modal */}
   {showQr && (
     <QrModal
+      businessId={businessId}
       customerId={customerId}
       onClose={() => setShowQr(false)}
       logoUrl={cardData.logoUrl}

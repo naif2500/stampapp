@@ -228,6 +228,7 @@ useEffect(() => {
         )}
         {showQrForBusinessId && (
           <QrModal
+             businessId={showQrForBusinessId}
             customerId={customerId}
             logoUrl={joinedBusinesses[showQrForBusinessId]?.logoUrl}
             cardName={joinedBusinesses[showQrForBusinessId]?.cardName}
