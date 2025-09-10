@@ -45,6 +45,7 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
 
       // ✅ stop scanner after success
       await html5QrCode.stop();
+      document.getElementById("qr-reader").innerHTML = ""; // 👈 release camera view
     } catch (err) {
       console.error("Error handling scanned token:", err);
       alert("Failed to process QR code");
