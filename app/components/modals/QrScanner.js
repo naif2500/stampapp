@@ -37,7 +37,7 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
         return;
       }
 
-      await updateStampOrRedeem(tokenData.customerId);
+      await updateStampOrRedeem(tokenData.customerId, tokenBusinessId);
 
       await updateDoc(tokenRef, { used: true, usedAt: new Date() });
 

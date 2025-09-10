@@ -81,7 +81,7 @@ useEffect(() => {
 
 
 
-async function updateStampOrRedeem(userId) {
+async function updateStampOrRedeem(userId, businessId) {
   const userRef = doc(db, 'users', userId);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) return;
@@ -89,53 +89,52 @@ async function updateStampOrRedeem(userId) {
   const userData = userSnap.data();
   const updatedBusinesses = { ...userData.joinedBusinesses };
 
-  for (const [businessId, card] of Object.entries(updatedBusinesses)) {
-    if (card.type === 'stamp') {
-      const currentStamps = card.stamps || 0;
-      const needed = card.stampsNeeded || 9;
+  const card = updatedBusinesses[businessId];
+  if (!card || card.type !== "stamp") return; // nothing to update
 
-      const customerRef = doc(db, `businesses/${businessId}/customers`, userId);
-      const historyRef = collection(customerRef, "history");
+  const currentStamps = card.stamps || 0;
+  const needed = card.stampsNeeded || 9;
 
-      if (currentStamps < needed) {
-        // ✅ Add a stamp
-        updatedBusinesses[businessId].stamps = currentStamps + 1;
+  const customerRef = doc(db, `businesses/${businessId}/customers`, userId);
+  const historyRef = collection(customerRef, "history");
 
-        await updateDoc(customerRef, {
-          stampCount: currentStamps + 1,
-          lastStampTime: new Date()
-        });
+  if (currentStamps < needed) {
+    // ✅ Add a stamp
+    updatedBusinesses[businessId].stamps = currentStamps + 1;
 
-        await updateDoc(userRef, {
-          joinedBusinesses: updatedBusinesses,
-          lastStampTime: new Date()
-        });
+    await updateDoc(customerRef, {
+      stampCount: currentStamps + 1,
+      lastStampTime: new Date()
+    });
 
-        await addDoc(historyRef, {
-          type: "stamp",
-          timestamp: new Date()
-        });
+    await updateDoc(userRef, {
+      joinedBusinesses: updatedBusinesses,
+      lastStampTime: new Date()
+    });
 
-      } else if (currentStamps === needed) {
-        // 🎉 Redeem (manual trigger when already full)
-        updatedBusinesses[businessId].stamps = 0;
+    await addDoc(historyRef, {
+      type: "stamp",
+      timestamp: new Date()
+    });
 
-        await updateDoc(customerRef, {
-          stampCount: 0,
-          lastRedeemTime: new Date()
-        });
+  } else if (currentStamps === needed) {
+    // 🎉 Redeem
+    updatedBusinesses[businessId].stamps = 0;
 
-        await updateDoc(userRef, {
-          joinedBusinesses: updatedBusinesses,
-          lastRedeemTime: new Date()
-        });
+    await updateDoc(customerRef, {
+      stampCount: 0,
+      lastRedeemTime: new Date()
+    });
 
-        await addDoc(historyRef, {
-          type: "redeem",
-          timestamp: new Date()
-        });
-      }
-    }
+    await updateDoc(userRef, {
+      joinedBusinesses: updatedBusinesses,
+      lastRedeemTime: new Date()
+    });
+
+    await addDoc(historyRef, {
+      type: "redeem",
+      timestamp: new Date()
+    });
   }
 
   // 🔥 Update Admin UI
@@ -149,11 +148,12 @@ async function updateStampOrRedeem(userId) {
 }
 
 
+
   async function handleScanSuccess(scannedId) {
     setScanning(false);
     const user = customers.find(c => c.id === scannedId);
     if (user) {
-      await updateStampOrRedeem(user.id);
+      await updateStampOrRedeem(user.id, businessId);
       alert(`Added stamp for customer ${scannedId}`);
     } else {
       alert(`No user found with ID: ${scannedId}`);
@@ -256,7 +256,7 @@ async function updateStampOrRedeem(userId) {
         {/* Action Button */}
         <div>
           <button
-            onClick={() => updateStampOrRedeem(customer.id)}
+            onClick={() => updateStampOrRedeem( customer.id, businessId)}
             className="px-3 py-1 bg-blue-500 text-white rounded"
           >
             {stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
