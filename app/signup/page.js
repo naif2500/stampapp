@@ -33,7 +33,7 @@ export default function SignupPage() {
         createdAt: new Date(),
       });
 
-      router.push('/');
+      router.push('/tutorial');
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to create account');

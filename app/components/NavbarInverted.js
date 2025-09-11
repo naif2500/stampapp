@@ -18,14 +18,14 @@ export default function NavbarInverted() {
 
       {/* Right buttons */}
       <div className="flex gap-2">
-        <Link href="/login">
+        <Link href="/AuthChoicePage">
           <button className="px-4 py-1 border border-white text-white rounded hover:bg-blue-50 text-lg">
-            Log In
+            Costumer
           </button>
         </Link>
-        <Link href="/signup">
+        <Link href="/BusinessLoginPage">
           <button className="px-4 py-1 bg-white text-[#6774CA] rounded hover:bg-blue-600 text-lg">
-            Sign Up
+            Business
           </button>
         </Link>
       </div>
