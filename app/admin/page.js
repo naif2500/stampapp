@@ -97,6 +97,7 @@ async function updateStampOrRedeem(userId, businessId) {
 
   const customerRef = doc(db, `businesses/${businessId}/customers`, userId);
   const historyRef = collection(customerRef, "history");
+  const userHistoryRef = collection(userRef, "history");
 
   if (currentStamps < needed) {
     // ✅ Add a stamp
@@ -112,10 +113,14 @@ async function updateStampOrRedeem(userId, businessId) {
       lastStampTime: new Date()
     });
 
-    await addDoc(historyRef, {
+      const log = {
       type: "stamp",
+      businessId,
       timestamp: new Date()
-    });
+    };
+
+    await addDoc(historyRef, log);
+    await addDoc(userHistoryRef, log);
 
   } else if (currentStamps === needed) {
     // 🎉 Redeem
@@ -131,10 +136,14 @@ async function updateStampOrRedeem(userId, businessId) {
       lastRedeemTime: new Date()
     });
 
-    await addDoc(historyRef, {
+   const log = {
       type: "redeem",
+      businessId,
       timestamp: new Date()
-    });
+    };
+
+    await addDoc(historyRef, log);
+    await addDoc(userHistoryRef, log);
   }
 
   // 🔥 Update Admin UI
