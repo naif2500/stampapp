@@ -14,57 +14,55 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
   processedRef.current = false; // reset whenever scanner opens
 }, [businessId]);
 
-  const handleScan = useCallback(async (decodedText, html5QrCode) => {
-    if (processedRef.current) return; // 👈 prevent double scans
-    processedRef.current = true;
-
+const safeStop = async (html5QrCode) => {
     try {
-      let parsed;
-      try {
-        parsed = JSON.parse(decodedText);
-      } catch {
-        alert("Invalid QR code format");
-        return;
-      }
-
-      const { businessId: tokenBusinessId, token } = parsed;
-
-      if (tokenBusinessId !== businessId) {
-        alert("Invalid QR code for this business");
-        return;
-      }
-
-      const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
-      const tokenSnap = await getDoc(tokenRef);
-
-      if (!tokenSnap.exists()) {
-        alert("Invalid or expired QR code");
-        return;
-      }
-
-      const tokenData = tokenSnap.data();
-      if (tokenData.used) {
-        alert("This QR code has already been used");
-        return;
-      }
-
-      await updateStampOrRedeem(tokenData.customerId, tokenBusinessId);
-      await updateDoc(tokenRef, { used: true, usedAt: new Date() });
-
-      onScanSuccess?.(tokenData.customerId);
-
-      // ✅ stop scanner after success
       await html5QrCode.stop();
-      document.getElementById("qr-reader").innerHTML = ""; 
+      document.getElementById("qr-reader").innerHTML = "";
     } catch (err) {
-      console.error("Error handling scanned token:", err);
-      alert("Failed to process QR code");
+      console.warn("QR scanner stop failed:", err);
     }
-  }, [businessId, updateStampOrRedeem, onScanSuccess]);
+  };
+
+  const handleScan = useCallback(async (decodedText, html5QrCode) => {
+  if (processedRef.current) return;
+  processedRef.current = true;
+
+  await safeStop(html5QrCode);
+
+  try {
+    let parsed;
+    try { parsed = JSON.parse(decodedText); } 
+    catch { alert("Invalid QR code format"); return; }
+
+    const { businessId: tokenBusinessId, token } = parsed;
+
+    if (tokenBusinessId !== businessId) {
+      alert("Invalid QR code for this business");
+      return;
+    }
+
+    const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
+    const tokenSnap = await getDoc(tokenRef);
+
+    if (!tokenSnap.exists() || tokenSnap.data().used) {
+      alert("Invalid or already used QR code");
+      return;
+    }
+
+    await updateStampOrRedeem(tokenSnap.data().customerId, tokenBusinessId);
+    await updateDoc(tokenRef, { used: true, usedAt: new Date() });
+
+    onScanSuccess?.(tokenSnap.data().customerId);
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to process QR code");
+  }
+}, [businessId, updateStampOrRedeem, onScanSuccess]);
+
 
 
   useEffect(() => {
-  processedRef.current = false; // 👈 reset on mount
   const html5QrCode = new Html5Qrcode("qr-reader");
 
   Html5Qrcode.getCameras().then((devices) => {
@@ -84,10 +82,8 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
     );
   });
 
-  return () => {
-    html5QrCode.stop().catch(() => {});
-  };
-}, [handleScan]);
+  return () => safeStop(html5QrCode); // ✅ cleanup safely
+  }, [handleScan]);
 
 
   return <div id="qr-reader" style={{ width: "100%" }} />;
