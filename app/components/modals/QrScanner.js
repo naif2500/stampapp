@@ -25,40 +25,43 @@ const safeStop = async (html5QrCode) => {
 
   const handleScan = useCallback(async (decodedText, html5QrCode) => {
   if (processedRef.current) return;
-  processedRef.current = true;
+  processedRef.current = true; // lock immediately
 
-  await safeStop(html5QrCode);
+  // small debounce to ignore duplicate same-frame events
+  setTimeout(async () => {
+    await safeStop(html5QrCode);
 
-  try {
-    let parsed;
-    try { parsed = JSON.parse(decodedText); } 
-    catch { alert("Invalid QR code format"); return; }
+    try {
+      let parsed;
+      try { parsed = JSON.parse(decodedText); }
+      catch { alert("Invalid QR code format"); return; }
 
-    const { businessId: tokenBusinessId, token } = parsed;
+      const { businessId: tokenBusinessId, token } = parsed;
+      if (tokenBusinessId !== businessId) {
+        alert("Invalid QR code for this business");
+        return;
+      }
 
-    if (tokenBusinessId !== businessId) {
-      alert("Invalid QR code for this business");
-      return;
+      const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
+      const tokenSnap = await getDoc(tokenRef);
+
+      if (!tokenSnap.exists() || tokenSnap.data().used) {
+        alert("Invalid or already used QR code");
+        return;
+      }
+
+      await updateStampOrRedeem(tokenSnap.data().customerId, tokenBusinessId);
+      await updateDoc(tokenRef, { used: true, usedAt: new Date() });
+
+      onScanSuccess?.(tokenSnap.data().customerId);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to process QR code");
     }
-
-    const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
-    const tokenSnap = await getDoc(tokenRef);
-
-    if (!tokenSnap.exists() || tokenSnap.data().used) {
-      alert("Invalid or already used QR code");
-      return;
-    }
-
-    await updateStampOrRedeem(tokenSnap.data().customerId, tokenBusinessId);
-    await updateDoc(tokenRef, { used: true, usedAt: new Date() });
-
-    onScanSuccess?.(tokenSnap.data().customerId);
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to process QR code");
-  }
+  }, 50); // 👈 short debounce
 }, [businessId, updateStampOrRedeem, onScanSuccess]);
+
 
 
 
