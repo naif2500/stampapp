@@ -160,13 +160,8 @@ async function updateStampOrRedeem(userId, businessId) {
 
   async function handleScanSuccess(scannedId) {
     setScanning(false);
-    const user = customers.find(c => c.id === scannedId);
-    if (user) {
-      await updateStampOrRedeem(user.id, businessId);
-      alert(`Added stamp for customer ${scannedId}`);
-    } else {
-      alert(`No user found with ID: ${scannedId}`);
-    }
+    alert(`Added stamp for customer ${scannedId}`);
+   
   }
   
   if (isLoading) {
