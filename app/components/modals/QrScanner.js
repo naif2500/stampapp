@@ -6,7 +6,8 @@ import { doc, getDoc, updateDoc, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
-  const processedTokensRef = useRef(new Set()); // ✅ Client-side lock for tokens
+  const processedTokensRef = useRef(new Set()); // ✅ Track processed tokens
+  const processingRef = useRef(false); // Global lock for scanning
 
   const safeStop = async (html5QrCode) => {
     try {
@@ -18,11 +19,15 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
   };
 
   const handleScan = useCallback(async (decodedText, html5QrCode) => {
+    if (processingRef.current) return; // Already handling a scan
+    processingRef.current = true;      // Lock scanner immediately
+
     let parsed;
     try {
       parsed = JSON.parse(decodedText);
     } catch {
       alert("Invalid QR code format");
+      processingRef.current = false;
       return;
     }
 
@@ -30,29 +35,29 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
 
     if (tokenBusinessId !== businessId) {
       alert("Invalid QR code for this business");
+      processingRef.current = false;
       return;
     }
 
-    if (processedTokensRef.current.has(token)) return; // already processing
+    if (processedTokensRef.current.has(token)) {
+      processingRef.current = false;
+      return; // Already processed this token
+    }
     processedTokensRef.current.add(token);
 
-    await safeStop(html5QrCode); // stop scanner immediately
+    await safeStop(html5QrCode);
 
     const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
 
     try {
-      // ✅ Server-side atomic check
       await runTransaction(db, async (transaction) => {
         const tokenSnap = await transaction.get(tokenRef);
         if (!tokenSnap.exists() || tokenSnap.data().used) {
           throw new Error("Invalid or already used token");
         }
-
-        // Mark token as used
         transaction.update(tokenRef, { used: true, usedAt: new Date() });
       });
 
-      // Update stamp/redeem
       const tokenSnap = await getDoc(tokenRef);
       const customerId = tokenSnap.data().customerId;
 
@@ -63,10 +68,10 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
       console.error(err);
       alert(err.message || "Failed to process QR code");
     } finally {
-      // remove from processing set to allow scanning new tokens
+      // Remove token from processing set to allow new scans
       processedTokensRef.current.delete(token);
+      processingRef.current = false; // Release lock
     }
-
   }, [businessId, updateStampOrRedeem, onScanSuccess]);
 
   useEffect(() => {
