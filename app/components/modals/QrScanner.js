@@ -2,12 +2,11 @@
 
 import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useCallback, useRef } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
-  const processedRef = useRef(false); // blocks double processing
-  const cooldownRef = useRef(false);  // short cooldown between scans
+  const processedTokensRef = useRef(new Set()); // ✅ Client-side lock for tokens
 
   const safeStop = async (html5QrCode) => {
     try {
@@ -19,64 +18,58 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
   };
 
   const handleScan = useCallback(async (decodedText, html5QrCode) => {
-    if (processedRef.current || cooldownRef.current) return; // block double scan or cooldown
-    processedRef.current = true;
-    cooldownRef.current = true;
+    let parsed;
+    try {
+      parsed = JSON.parse(decodedText);
+    } catch {
+      alert("Invalid QR code format");
+      return;
+    }
 
-    // start cooldown timer (1.5 seconds)
-    setTimeout(() => {
-      cooldownRef.current = false;
-    }, 1500);
+    const { businessId: tokenBusinessId, token } = parsed;
+
+    if (tokenBusinessId !== businessId) {
+      alert("Invalid QR code for this business");
+      return;
+    }
+
+    if (processedTokensRef.current.has(token)) return; // already processing
+    processedTokensRef.current.add(token);
+
+    await safeStop(html5QrCode); // stop scanner immediately
+
+    const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
 
     try {
-      let parsed;
-      try { parsed = JSON.parse(decodedText); }
-      catch { alert("Invalid QR code format"); return; }
+      // ✅ Server-side atomic check
+      await runTransaction(db, async (transaction) => {
+        const tokenSnap = await transaction.get(tokenRef);
+        if (!tokenSnap.exists() || tokenSnap.data().used) {
+          throw new Error("Invalid or already used token");
+        }
 
-      const { businessId: tokenBusinessId, token } = parsed;
+        // Mark token as used
+        transaction.update(tokenRef, { used: true, usedAt: new Date() });
+      });
 
-      if (tokenBusinessId !== businessId) {
-        alert("Invalid QR code for this business");
-        return;
-      }
-
-      const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
+      // Update stamp/redeem
       const tokenSnap = await getDoc(tokenRef);
+      const customerId = tokenSnap.data().customerId;
 
-      if (!tokenSnap.exists()) {
-        alert("Invalid QR code");
-        return;
-      }
-
-      const tokenData = tokenSnap.data();
-      if (tokenData.used) {
-        alert("This QR code has already been used");
-        return;
-      }
-
-      // mark token as used
-      await updateDoc(tokenRef, { used: true, usedAt: new Date() });
-
-      // update stamp/redeem
-      await updateStampOrRedeem(tokenData.customerId, tokenBusinessId);
-
-      // callback for parent
-      onScanSuccess?.(tokenData.customerId);
-
-      // stop scanner after successful scan
-      await safeStop(html5QrCode);
+      await updateStampOrRedeem(customerId, tokenBusinessId);
+      onScanSuccess?.(customerId);
 
     } catch (err) {
-      console.error("Failed to process QR code", err);
-      alert("Failed to process QR code");
+      console.error(err);
+      alert(err.message || "Failed to process QR code");
     } finally {
-      processedRef.current = false; // reset processed flag for next scan
+      // remove from processing set to allow scanning new tokens
+      processedTokensRef.current.delete(token);
     }
+
   }, [businessId, updateStampOrRedeem, onScanSuccess]);
 
   useEffect(() => {
-    processedRef.current = false; // reset whenever scanner opens
-
     const html5QrCode = new Html5Qrcode("qr-reader");
 
     Html5Qrcode.getCameras().then((devices) => {
@@ -96,7 +89,7 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
       );
     });
 
-    return () => safeStop(html5QrCode);
+    return () => safeStop(html5QrCode); // cleanup safely
   }, [handleScan]);
 
   return <div id="qr-reader" style={{ width: "100%" }} />;
