@@ -1,20 +1,15 @@
 'use client';
 
 import { Html5Qrcode } from 'html5-qrcode';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-import { useRef } from 'react';
-
 export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
-  const processedRef = useRef(false);
+  const processedRef = useRef(false); // blocks double processing
+  const cooldownRef = useRef(false);  // short cooldown between scans
 
-  useEffect(() => {
-  processedRef.current = false; // reset whenever scanner opens
-}, [businessId]);
-
-const safeStop = async (html5QrCode) => {
+  const safeStop = async (html5QrCode) => {
     try {
       await html5QrCode.stop();
       document.getElementById("qr-reader").innerHTML = "";
@@ -24,12 +19,14 @@ const safeStop = async (html5QrCode) => {
   };
 
   const handleScan = useCallback(async (decodedText, html5QrCode) => {
-  if (processedRef.current) return;
-  processedRef.current = true; // lock immediately
+    if (processedRef.current || cooldownRef.current) return; // block double scan or cooldown
+    processedRef.current = true;
+    cooldownRef.current = true;
 
-  // small debounce to ignore duplicate same-frame events
-  setTimeout(async () => {
-    await safeStop(html5QrCode);
+    // start cooldown timer (1.5 seconds)
+    setTimeout(() => {
+      cooldownRef.current = false;
+    }, 1500);
 
     try {
       let parsed;
@@ -37,6 +34,7 @@ const safeStop = async (html5QrCode) => {
       catch { alert("Invalid QR code format"); return; }
 
       const { businessId: tokenBusinessId, token } = parsed;
+
       if (tokenBusinessId !== businessId) {
         alert("Invalid QR code for this business");
         return;
@@ -45,49 +43,61 @@ const safeStop = async (html5QrCode) => {
       const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
       const tokenSnap = await getDoc(tokenRef);
 
-      if (!tokenSnap.exists() || tokenSnap.data().used) {
-        alert("Invalid or already used QR code");
+      if (!tokenSnap.exists()) {
+        alert("Invalid QR code");
         return;
       }
 
-      await updateStampOrRedeem(tokenSnap.data().customerId, tokenBusinessId);
+      const tokenData = tokenSnap.data();
+      if (tokenData.used) {
+        alert("This QR code has already been used");
+        return;
+      }
+
+      // mark token as used
       await updateDoc(tokenRef, { used: true, usedAt: new Date() });
 
-      onScanSuccess?.(tokenSnap.data().customerId);
+      // update stamp/redeem
+      await updateStampOrRedeem(tokenData.customerId, tokenBusinessId);
+
+      // callback for parent
+      onScanSuccess?.(tokenData.customerId);
+
+      // stop scanner after successful scan
+      await safeStop(html5QrCode);
 
     } catch (err) {
-      console.error(err);
+      console.error("Failed to process QR code", err);
       alert("Failed to process QR code");
+    } finally {
+      processedRef.current = false; // reset processed flag for next scan
     }
-  }, 50); // 👈 short debounce
-}, [businessId, updateStampOrRedeem, onScanSuccess]);
-
-
-
+  }, [businessId, updateStampOrRedeem, onScanSuccess]);
 
   useEffect(() => {
-  const html5QrCode = new Html5Qrcode("qr-reader");
+    processedRef.current = false; // reset whenever scanner opens
 
-  Html5Qrcode.getCameras().then((devices) => {
-    if (!devices || devices.length === 0) return;
+    const html5QrCode = new Html5Qrcode("qr-reader");
 
-    const backCamera = devices.find((d) =>
-      d.label.toLowerCase().includes("back") ||
-      d.label.toLowerCase().includes("environment")
-    );
-    const cameraId = backCamera ? backCamera.id : devices[0].id;
+    Html5Qrcode.getCameras().then((devices) => {
+      if (!devices || devices.length === 0) return;
 
-    html5QrCode.start(
-      cameraId,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decodedText) => handleScan(decodedText, html5QrCode),
-      () => {}
-    );
-  });
+      const backCamera = devices.find((d) =>
+        d.label.toLowerCase().includes("back") ||
+        d.label.toLowerCase().includes("environment")
+      );
+      const cameraId = backCamera ? backCamera.id : devices[0].id;
 
-  return () => safeStop(html5QrCode); // ✅ cleanup safely
+      html5QrCode.start(
+        cameraId,
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => handleScan(decodedText, html5QrCode),
+        () => {}
+      );
+    });
+
+    return () => safeStop(html5QrCode);
   }, [handleScan]);
-
 
   return <div id="qr-reader" style={{ width: "100%" }} />;
 }
