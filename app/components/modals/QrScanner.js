@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { X } from 'lucide-react';
 
 export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
   const html5QrCodeRef = useRef(null);
@@ -96,26 +97,27 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
   };
 
   return (
-    <>
+      <>
       <div id="qr-reader" style={{ width: "100%" }} />
 
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-6 rounded-xl w-80 text-center">
-            <h2 className="text-lg font-bold mb-4">Confirm Stamp</h2>
-            <p className="mb-6">Apply stamp for token: <strong>{scannedData.token}</strong>?</p>
-            <button
-              onClick={confirmStamp}
-              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-            >
-              Confirm
-            </button>
-            <button
-              onClick={cancelScan}
-              className="bg-gray-300 px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
+        <div className="fixed inset-0 bg-[#6774CA] z-50 flex flex-col">
+          {/* Cancel "X" */}
+          <button
+            onClick={cancelScan}
+            className="absolute top-4 right-4 text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Title */}
+          <h2 className="text-center text-white font-bold text-xl mt-12">
+            Scan Qr koden
+          </h2>
+
+          {/* Scanner Area */}
+          <div className="flex-1 flex items-center justify-center">
+            <div id="qr-reader" className="w-72 h-72 bg-white rounded-lg" />
           </div>
         </div>
       )}
