@@ -4,10 +4,9 @@
   "start_url": "/login",
   "display": "standalone",
   "background_color": "#6774CA",
-  "theme_color": "#6774CA",
   "icons": [
     {
-      "src": "/AppIcon.png",
+      "src": "/ElephantIcon.png",
       "sizes": "192x192",
       "type": "image/png"
     },

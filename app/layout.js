@@ -1,5 +1,5 @@
 import './globals.css'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Unbounded } from 'next/font/google'
 
 export const metadata = {
   title: 'Stampify',
@@ -16,11 +16,16 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 })
+const unbounded = Unbounded({
+  variable: '--font-unbounded',
+  subsets: ['latin'],
+  weight: ['400', '700'],
+})
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${unbounded.variable} bg-[#F8FFFA] antialiased`}>
        {children}
       </body>
     </html>
