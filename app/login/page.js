@@ -21,8 +21,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-20 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4 text-center">Log In</h2>
+    <div className=" flex flex-col max-w-sm mx-auto mt-20 p-6 bg-white ">
+      <img
+          src="/Green_elephant.png"
+          alt="Elephant"
+          className="w-14 h-14 mb-6  items-center justify-center text-center mx-auto"
+        />
+
+        {/* Text */}
+        <h2 className="text-2xl text-center font-bold text-black mb-2">Welcome</h2>
+        <p className="text-black text-center mb-8">
+          Choose an option to continue:
+        </p>
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
         <input
           type="email"
@@ -39,13 +49,13 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button type="submit" className="bg-green-600 text-white py-2 rounded">
+        <button type="submit" className="bg-[#385C32] text-white py-2 rounded">
           Log In
         </button>
       </form>
        <p className="mt-4 text-center text-sm">
         <button
-          className="text-blue-600 underline"
+          className="text-[#385C32] underline"
           onClick={() => router.push('/ForgotPasswordPage')}
         >
           Forgot Password?

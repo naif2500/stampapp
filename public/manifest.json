@@ -4,6 +4,7 @@
   "start_url": "/login",
   "display": "standalone",
   "background_color": "#6774CA",
+  "theme_color": "#FFFFFF",
   "icons": [
     {
       "src": "/ElephantIcon.png",
