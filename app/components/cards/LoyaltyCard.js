@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Check } from 'lucide-react';
 
 const LoyaltyCard = ({ businessId, userId, name, cardName, stampsNeeded, onClick, logoUrl }) => {
   const [stamps, setStamps] = useState(0);
@@ -12,7 +13,6 @@ const LoyaltyCard = ({ businessId, userId, name, cardName, stampsNeeded, onClick
 
     const userCardRef = doc(db, `businesses/${businessId}/customers`, userId);
 
-    // Listen in real-time
     const unsubscribe = onSnapshot(userCardRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -20,36 +20,66 @@ const LoyaltyCard = ({ businessId, userId, name, cardName, stampsNeeded, onClick
       }
     });
 
-    return () => unsubscribe(); // Cleanup listener on unmount
+    return () => unsubscribe();
   }, [businessId, userId]);
 
+  // Top and bottom rows
+  const topRow = Math.min(5, stampsNeeded);
+  const bottomRow = Math.max(0, stampsNeeded - 5);
 
   return (
     <div
       key={businessId}
-      className="relative bg-gradient-to-b from-[#b8c1f7] to-[#d3d8fa] cursor-pointer rounded-2xl shadow-lg w-full max-w-[340px] p-6 flex flex-col justify-between transition-transform transform hover:scale-[1.02]"
+      className="relative bg-gradient-to-br from-[#2E4632] to-[#1E2C22] cursor-pointer rounded-xl shadow-2xl w-full max-w-[380px] p-5 flex flex-col"
       onClick={() => onClick(businessId)}
     >
-      <div className="flex items-center justify-between mb-12">
-        <div className="flex items-center gap-3">
-        <img src={logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-full" />
-        <h2 className="text-lg font-semibold text-[#333]">{name}</h2>
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-5">
+        <img src={logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-full shadow-sm border-2 border-white" />
+        <div>
+          <h3 className="text-sm font-bold text-white">{cardName}</h3>
+          <p className="text-xs text-gray-300">{name}</p>
         </div>
-        <span className="text-xs bg-white/60 px-3 py-1 rounded-full text-[#6774CA] font-medium shadow-inner">
-          {stamps}/{stampsNeeded}
-        </span>
       </div>
-      <h3 className="text-4xl font-bold text-[#333]">{cardName}</h3>
-      <p className="text-sm text-gray-600 mt-2">Spar 15% på hvert køb</p>
 
-
-
-      {/* Redeem Now Label */}
-      {stamps >= stampsNeeded && (
-        <div className="absolute bottom-3 right-3 bg-[#6774CA] text-white text-xs px-3 py-1 rounded-full shadow-md">
-          Redeem Now
+      {/* Stamp Grid */}
+      <div className="flex flex-col gap-3 items-start mb-6">
+        {/* Top row */}
+        <div className="flex gap-3">
+          {Array.from({ length: topRow }).map((_, i) => (
+            <div
+              key={`top-${i}`}
+              className={`w-[55px] h-[40px] rounded-md flex items-center justify-center shadow 
+                ${i < stamps ? 'bg-white' : 'bg-white/30'}`}
+            >
+              {i < stamps && <Check className="w-5 h-5 text-[#2E4632]" />}
+            </div>
+          ))}
         </div>
-      )}
+
+        {/* Bottom row */}
+        {bottomRow > 0 && (
+          <div className="flex gap-3 justify-center">
+            {Array.from({ length: bottomRow }).map((_, i) => {
+              const stampIndex = topRow + i;
+              return (
+                <div
+                  key={`bottom-${i}`}
+                  className={`w-[55px] h-[40px] rounded-md flex items-center justify-center shadow 
+                    ${stampIndex < stamps ? 'bg-white' : 'bg-white/30'}`}
+                >
+                  {stampIndex < stamps && <Check className="w-5 h-5 text-[#2E4632]" />}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Description */}
+      <p className="text-xs text-center text-gray-200">
+        Køb {stampsNeeded} og få 1 gratis
+      </p>
     </div>
   );
 };

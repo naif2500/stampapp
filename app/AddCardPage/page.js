@@ -56,7 +56,7 @@ export default function AddBusinessPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       <CustomerNavbar />
-      <main className="flex-1 bg-white px-4 pt-20 py-6 lg:px-24">
+      <main className="flex-1 bg-white px-4 pt-10 py-6 lg:px-24">
         <h2 className="text-2xl font-bold mb-6 mt-2">
           Add a Stamp Card
         </h2>
