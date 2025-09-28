@@ -155,7 +155,7 @@ useEffect(() => {
   
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screenflex flex-col lg:flex-row">
 
       {notification && (
   <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
@@ -166,8 +166,8 @@ useEffect(() => {
       {/* Sidebar (desktop) / Navbar (mobile) */}
       <CustomerNavbar />
       {/* Main Content */}
-      <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10">
-        <div className="flex text-gray-800 justify-between items-center pt-10 mb-4">
+      <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10 ">
+        <div className="flex text-gray-800 justify-between items-center pt-4 mb-4">
           <h1 className="text-4xl font-bold">Hjem</h1>
         </div>
 

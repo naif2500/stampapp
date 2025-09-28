@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true); // Track loading state
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [businessInfo, setBusinessInfo] = useState(null);
+
   const itemsPerPage = 5; // 👈 Adjust as needed
 
 
@@ -45,6 +47,7 @@ export default function AdminPage() {
         if (docSnap.exists()) {
           setIsAuthenticated(true);
           setBusinessId(user.uid);
+          setBusinessInfo(docSnap.data());
         } else {
           setIsAuthenticated(false);
           router.push('/BusinessLoginPage'); // Redirect if not a business user
@@ -226,7 +229,7 @@ async function updateStampOrRedeem(userId, businessId) {
       <ul>
     {paginatedCustomers.map(customer => {
     const stamps = customer.stampCount || 0;
-    const stampsNeeded = customer.stampsNeeded || 9; // fallback
+    const stampsNeeded = businessInfo?.stampsNeeded || 9; // fallback
     const cardName = customer.cardName || "Card"; // fallback
 
     return (

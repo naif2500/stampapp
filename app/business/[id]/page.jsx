@@ -68,8 +68,11 @@ await updateDoc(userRef, {
 
     // Update business customers
     const customerRef = doc(collection(db, `businesses/${business.id}/customers`), customerId);
+    const userData = userSnap.data();
     await setDoc(customerRef, {
       customerId,
+      name: userData.name || '',
+      phone: userData.phone || '',
       stampCount: initialStamps,
       type: business.type,
       createdAt: new Date(),

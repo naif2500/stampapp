@@ -8,7 +8,7 @@ export default function FixedNavbar({ title, showBack = true, rightContent = nul
   const router = useRouter();
 
   return (
-    <div className="fixed top-0 left-0 w-full bg-white shadow-md z-50 flex items-center justify-between px-4 py-3">
+    <div className="fixed top-0 left-0 w-full  z-50 flex items-center justify-between px-4 py-3">
       {/* Left side (Back button) */}
       <div className="flex items-center">
         {showBack && (
