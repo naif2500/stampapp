@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuth, setPersistence, browserLocalPersistence, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence,indexedDBLocalPersistence, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export default function LoginPage() {
@@ -33,7 +33,7 @@ export default function LoginPage() {
     const auth = getAuth();
 
 // Set persistence once, before login
-await setPersistence(auth, browserLocalPersistence);
+await setPersistence(auth, indexedDBLocalPersistence);
 
     const appVerifier = setupRecaptcha();
 
@@ -91,7 +91,7 @@ const resendOtp = async () => {
 
   try {
     const auth = getAuth();
-    await setPersistence(auth, browserLocalPersistence);
+    await setPersistence(auth, indexedDBLocalPersistence);
     const appVerifier = setupRecaptcha();
 
     let formattedPhone = phone.trim();
@@ -111,7 +111,7 @@ const resendOtp = async () => {
 };
 
   return (
-    <div className="flex flex-col max-w-sm mx-auto mt-20 p-6 bg-white rounded-lg shadow">
+    <div className="flex flex-col max-w-sm mx-auto mt-20 p-6 bg-white rounded-lg">
        
 
       {!confirmationResult ? (
@@ -133,7 +133,7 @@ const resendOtp = async () => {
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-          <div id="recaptcha-container"></div>
+          <div id="recaptcha-container" className="h-0 w-0 overflow-hidden"></div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
