@@ -27,7 +27,7 @@ export default function NavbarInverted() {
 
       {/* Right buttons */}
       <div className="flex gap-2">
-        <Link href="/AuthChoicePage">
+        <Link href="/login">
           <button className="px-4 py-1 border border-[#B8E986] text-white rounded hover:bg-[#B8E986] text-lg">
             Costumer
           </button>

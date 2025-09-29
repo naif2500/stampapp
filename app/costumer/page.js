@@ -17,7 +17,7 @@ import {
   getDocs,
   onSnapshot,
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence} from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useRef } from "react";
 import CustomerNavbar from '../components/CustomerNavbar';
@@ -40,6 +40,11 @@ export default function CustomerPage() {
   // ✅ Fetch authenticated user ID
   useEffect(() => {
     const auth = getAuth();
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    // auth persistence is set; you can safely call signInWithPhoneNumber elsewhere
+  })
+  .catch((err) => console.error('Failed to set persistence', err));
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const uid = user.uid;
