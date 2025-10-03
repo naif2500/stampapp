@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Info, Home, User, Plus } from 'lucide-react';
+import { Info, Home, User, Plus, ChevronRight} from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, updateDoc, getDoc, getDocs, doc} from 'firebase/firestore';
@@ -216,55 +216,54 @@ async function updateStampOrRedeem(userId, businessId) {
             setSearchTerm(e.target.value);
             setCurrentPage(1); // reset to first page on search
           }}
-          className="w-full p-2 border rounded mb-4"
+          className="w-full p-2 border border-gray-500 rounded mb-4"
         />
 
 
-      <div className="grid grid-cols-3 font-semibold border-b pb-2 mb-2">
-        <div>Customer</div>
-        <div>Stamps</div>
-        <div>Actions</div>
-      </div>
+      
 
-      <ul>
-    {paginatedCustomers.map(customer => {
+      <ul className="space-y-4">
+  {paginatedCustomers.map((customer) => {
     const stamps = customer.stampCount || 0;
-    const stampsNeeded = businessInfo?.stampsNeeded || 9; // fallback
-    const cardName = customer.cardName || "Card"; // fallback
+    const stampsNeeded = businessInfo?.stampsNeeded || 9;
 
     return (
       <li
         key={customer.id}
-        className="grid grid-cols-3 items-center border-b py-4"
+        className="shadow-lg rounded-lg p-4 border border-gray-200 "
       >
-        {/* Customer Name / Link */}
-        <div className="truncate">
-          <Link
-            href={`/admin/customers/${customer.id}`}
-            className="text-blue-600 hover:underline"
-          >
-            {customer.name || customer.id}
-          </Link>
-        </div>
+        {/* Customer Summary */}
+        <Link
+  href={`/admin/customers/${customer.id}`}
+  className="flex justify-between items-center mb-4 border-b border-gray-400 pb-2 text-black hover:bg-gray-100 p-2 rounded"
+>
+  <div>
+    <p className="font-semibold">{customer.name || customer.id}</p>
+    <p className="text-sm text-gray-400">1 active card</p>
+  </div>
 
-        {/* Stamp Progress */}
-        <div className="flex flex-col gap-1 max-w-xs w-full">
-          <div className="text-sm font-medium">
-            {stamps}/{stampsNeeded}
-          </div>
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all duration-300"
-              style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+  {/* Arrow Icon */}
+  <ChevronRight className="h-5 w-5 text-gray-400" />
+</Link>
 
-        {/* Action Button */}
-        <div>
+        {/* Card Info */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-3 rounded-lg bg-white/10">
+          <div className="flex-1">
+            <p className="font-medium">Default Card</p>
+            <p className="text-sm ">
+              {stamps}/{stampsNeeded}
+            </p>
+            <div className="w-md h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#B8E986] transition-all duration-300"
+                style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+
           <button
-            onClick={() => updateStampOrRedeem( customer.id, businessId)}
-            className="px-3 py-1 bg-blue-500 text-white rounded"
+            onClick={() => updateStampOrRedeem(customer.id, businessId)}
+            className="px-3 py-1 bg-[#B8E986] text-black rounded"
           >
             {stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
           </button>
@@ -273,6 +272,8 @@ async function updateStampOrRedeem(userId, businessId) {
     );
   })}
 </ul>
+
+
 
        {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-4">
