@@ -3,7 +3,7 @@
 export default function CTASection() {
   return (
     <section className="py-20 px-6">
-      <div className=" mx-auto bg-gradient-to-b from-[#4F59A8] via-[#6774CA] to-[#8B94E3] rounded-2xl text-white text-center p-12 shadow-lg">
+      <div className=" mx-auto bg-[#333333] rounded-2xl text-white text-center p-12 shadow-lg">
         <h2 className="text-4xl font-bold mb-6">Klar til at komme i gang?</h2>
         <p className="text-lg mb-8 max-w-2xl mx-auto">
           Slut dig til tusindvis af virksomheder, der styrker deres loyalitetsprogrammer med Stampify.
