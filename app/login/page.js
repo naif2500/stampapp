@@ -14,12 +14,7 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-      delete window.recaptchaVerifier;
-    }
-  }, []);
+  
 
   const setupRecaptcha = () => {
   if (!window.recaptchaVerifier) {
