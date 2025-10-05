@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Check } from 'lucide-react';
+import { Check, Gift } from 'lucide-react';
 
 const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, stampsNeeded }) => {
 
@@ -38,13 +38,18 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
         <div className="flex gap-2 w-full">
           {Array.from({ length: topRow }).map((_, i) => {
             const isFilled = i < stamps;
+            const isLast = i === stampsNeeded - 1;
             return (
               <div
                 key={`top-${i}`}
                 className={`flex-1 aspect-[55/40] max-w-[55px] rounded-md flex items-center justify-center shadow
                   ${isFilled ? 'bg-white opacity-100' : 'bg-white opacity-30'}`}
               >
-                <Check className="w-1/2 h-1/2 text-[#2E4632]" />
+                {isLast ? (
+                  <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> // 🎁 show gift icon
+                ) : (
+                  <Check className="w-1/2 h-1/2 text-[#2E4632]" />
+                )}
               </div>
             );
           })}
@@ -64,6 +69,7 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
             {Array.from({ length: 5 }).map((_, i) => {
               const stampIndex = topRow + i;
               const isGhost = i >= bottomRow; // ghost filler
+              const isLast = stampIndex === stampsNeeded - 1;
 
               return (
                 <div
@@ -72,7 +78,12 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
                     ${isGhost ? 'invisible' : ''} 
                     ${stampIndex < stamps ? 'bg-white opacity-100' : 'bg-white opacity-30'}`}
                 >
-                  {!isGhost && <Check className="w-1/2 h-1/2 text-[#2E4632]" />}
+                  {!isGhost &&
+                    (isLast ? (
+                      <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> // 🎁 gift icon
+                    ) : (
+                      <Check className="w-1/2 h-1/2 text-[#2E4632]" />
+                    ))}
                 </div>
               );
             })}

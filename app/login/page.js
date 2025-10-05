@@ -14,14 +14,32 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-      });
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      delete window.recaptchaVerifier;
     }
-    return window.recaptchaVerifier;
-  };
+  }, []);
+
+  const setupRecaptcha = () => {
+  if (!window.recaptchaVerifier) {
+    const container = document.getElementById('recaptcha-container');
+
+    // Reset the container’s visibility safely
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+    });
+  }
+
+  return window.recaptchaVerifier;
+};
+
 
   const sendOtp = async (e) => {
   e.preventDefault();
@@ -127,13 +145,13 @@ const resendOtp = async () => {
       </p>
           <input
             type="tel"
-            placeholder="Phone (e.g. +1234567890)"
+            placeholder="Telefonnummer"
             className="p-2 border rounded"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-          <div id="recaptcha-container" className="h-0 w-0 overflow-hidden"></div>
+          <div id="recaptcha-container"></div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
@@ -164,7 +182,9 @@ const resendOtp = async () => {
       {otp.map((data, index) => (
         <input
           key={index}
-          type="text"
+          type="tel"           
+          inputMode="numeric"  
+          pattern="[0-9]*"     
           maxLength="1"
           value={data}
           onChange={(e) => handleOtpChange(e.target, index)}

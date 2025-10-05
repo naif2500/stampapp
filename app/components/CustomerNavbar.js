@@ -3,7 +3,7 @@ import { User, Plus, Home } from 'lucide-react';
 
 export default function CustomerNavbar() {
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center py-4 z-40 border-t border-gray-300
+    <nav className="fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center py-5 z-40 border-t border-gray-300
                     md:py-5 lg:static lg:flex-col lg:justify-start lg:items-center lg:w-20 lg:h-screen lg:border-r border-gray-300">
 
       
