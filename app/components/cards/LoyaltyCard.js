@@ -5,30 +5,9 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Check } from 'lucide-react';
 
-const LoyaltyCard = ({ businessId, userId, name, cardName, onClick, logoUrl }) => {
-  const [stamps, setStamps] = useState(0);
-  const [stampsNeeded, setStampsNeeded] = useState(0);
+const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, stampsNeeded }) => {
 
-  useEffect(() => {
-    if (!userId || !businessId) return;
 
-    // Listen to the user's own document
-    const userRef = doc(db, "users", userId);
-
-    const unsubscribe = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const businessCard = data.joinedBusinesses?.[businessId];
-
-        if (businessCard) {
-          setStamps(businessCard.stamps ?? 0);
-          setStampsNeeded(businessCard.stampsNeeded ?? 0);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [businessId, userId]);
 
   // Top and bottom rows
   const topRow = Math.min(5, stampsNeeded);

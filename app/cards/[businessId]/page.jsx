@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard';
@@ -12,67 +12,83 @@ import FixedNavbar from '../../components/FixedNavbar';
 export default function CardDetailPage() {
   const { businessId } = useParams();
   const [cardData, setCardData] = useState(null);
-  const [showQr, setShowQr] = useState(false);
-  const [customerId, setCustomerId] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [customerId, setCustomerId] = useState(null);
+  const [showQr, setShowQr] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        // Redirect to login if not authenticated
-        window.location.href = '/login';
-        return;
-      }
+    let unsubscribeUser = null;
+    let unsubscribeLogs = null;
 
-      setCustomerId(user.uid);
-
-      // Fetch user's joined businesses
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const joined = userSnap.data().joinedBusinesses || {};
-        if (joined[businessId]) {
-          setCardData(joined[businessId]);
-
-          // Fetch latest 10 logs for this business from user's history
-          const historyRef = collection(db, `users/${user.uid}/history`);
-          const q = query(historyRef, orderBy('timestamp', 'desc'), limit(10));
-          const historySnap = await getDocs(q);
-
-          const fetchedLogs = historySnap.docs
-            .map((doc) => ({ id: doc.id, ...doc.data() }))
-            .filter((log) => log.businessId === businessId); // only show logs for this business
-
-          setLogs(fetchedLogs);
-        } else {
-          alert('You have not joined this business card yet.');
+    const init = () => {
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          window.location.href = '/login';
+          return;
         }
-      }
 
-      setLoading(false);
-    });
+        setCustomerId(user.uid);
 
-    return () => unsubscribe();
+        const userRef = doc(db, 'users', user.uid);
+        // Real-time listener for card data
+        unsubscribeUser = onSnapshot(userRef, (userSnap) => {
+          if (userSnap.exists()) {
+            const joined = userSnap.data().joinedBusinesses || {};
+            if (joined[businessId]) {
+              setCardData(joined[businessId]);
+            } else {
+              setCardData(null); // user left the business or never joined
+            }
+          }
+          setLoading(false);
+        });
+
+        // Real-time listener for logs
+        const historyRef = collection(db, `users/${user.uid}/history`);
+        const q = query(historyRef, orderBy('timestamp', 'desc'), limit(10));
+        unsubscribeLogs = onSnapshot(q, (snap) => {
+          const fetchedLogs = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(log => log.businessId === businessId);
+          setLogs(fetchedLogs);
+        });
+      });
+    };
+
+    init();
+
+    return () => {
+      if (unsubscribeUser) unsubscribeUser();
+      if (unsubscribeLogs) unsubscribeLogs();
+    };
   }, [businessId]);
 
   if (loading) return <p>Loading...</p>;
-  if (!cardData) return <p>Card not found.</p>;
+  if (!cardData) return <p>Card not found or not joined.</p>;
 
   return (
     <div className="min-h-screen p-6 flex flex-col items-center">
       <FixedNavbar title="Card detail" />
 
       {/* Display the Loyalty Card */}
-      <div className="mt-20 w-full max-w-md px-4">
-        <LoyaltyCard {...cardData} />
+      <div className="mt-20 w-full max-w-md flex justify-center">
+        <LoyaltyCard
+          businessId={businessId}
+          userId={customerId}
+          name={cardData.name}
+          cardName={cardData.cardName}
+          logoUrl={cardData.logoUrl}
+          stamps={cardData.stamps}
+          stampsNeeded={cardData.stampsNeeded}
+          
+        />
       </div>
 
       {/* Logs Container */}
-      <div className="mt-6 w-full max-w-md bg-white shadow-md rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-4">Latest Activity</h2>
+      <div className="mt-6 w-full max-w-sm bg-white shadow-md rounded-xl p-4">
+        <h2 className="text-md text-gray-800 font-semibold mb-4">Latest Activity</h2>
         {logs.length === 0 ? (
           <p className="text-gray-500 text-sm">No activity yet.</p>
         ) : (
@@ -82,7 +98,7 @@ export default function CardDetailPage() {
                 <div className="text-gray-600">
                   {log.timestamp?.toDate().toLocaleDateString()}
                 </div>
-                <div className="text-gray-800">
+                <div className="text-gray-800 flex justify-end">
                   {log.type === 'stamp'
                     ? 'You received a stamp'
                     : log.type === 'redeem'
@@ -100,7 +116,7 @@ export default function CardDetailPage() {
         <div className="fixed bottom-6 w-full px-6">
           <button
             onClick={() => setShowQr(true)}
-            className="w-full py-3 bg-[#6774CA] text-white rounded-xl font-semibold shadow-md"
+            className="w-full py-3 bg-[#385C32] text-white rounded-xl font-semibold shadow-md"
           >
             Show QR Code
           </button>
