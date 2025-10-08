@@ -379,20 +379,15 @@ async function updateStampOrRedeem(userId, businessId) {
       </div>
 
       {scanning && businessId && (
-  <div className="mb-6 border p-4 rounded">
-    <QrScanner
-      businessId={businessId}
-      updateStampOrRedeem={updateStampOrRedeem}
-      onScanSuccess={handleScanSuccess}
-    />
-    <button
-      onClick={() => setScanning(false)}
-      className="mt-2 px-3 py-1 bg-red-500 text-white rounded"
-    >
-      Cancel
-    </button>
-  </div>
-)}
+        <QrScanner
+          businessId={businessId}
+          updateStampOrRedeem={updateStampOrRedeem}
+          onScanSuccess={handleScanSuccess}
+          onClose={() => setScanning(false)}
+        />
+      )}
+    
+
 
     </main>
     </div>

@@ -6,7 +6,7 @@ import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { X } from 'lucide-react';
 
-export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess }) {
+export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess, onClose }) {
   const html5QrCodeRef = useRef(null);
   const [scannedData, setScannedData] = useState(null); // Data from QR code
   const [modalOpen, setModalOpen] = useState(false);
@@ -96,17 +96,26 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
     html5QrCodeRef.current.resume();
   };
 
-  return (
-       <>
-      {/* QR Reader Section */}
-      <div className="min-h-screen flex flex-col bg-[#6774CA]">
-        <h2 className="text-center text-white font-bold text-xl mt-6">
-          Scan Qr koden
-        </h2>
-        <div className="flex-1 flex items-center justify-center">
-          <div id="qr-reader" className="w-72 h-72 bg-white rounded-lg" />
-        </div>
-      </div>
+   return (
+    <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50">
+      {/* Close button */}
+      <button
+        onClick={() => {
+          html5QrCodeRef.current?.stop().catch(() => {});
+          setModalOpen(false);
+          setScannedData(null);
+          onClose?.();
+        }}
+        className="absolute top-5 left-5 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 z-[999]"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      {/* Title */}
+      <h2 className="text-center text-white font-bold text-xl mb-6">Scan QR Code</h2>
+
+      {/* QR Scanner */}
+      <div id="qr-reader" className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg"></div>
 
       {/* Confirm Modal */}
       {modalOpen && (
@@ -114,8 +123,7 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
           <div className="bg-white p-6 rounded-xl w-80 text-center shadow-lg">
             <h2 className="text-lg font-bold mb-4">Confirm Stamp</h2>
             <p className="mb-6">
-              Apply stamp for token:{' '}
-              <strong>{scannedData?.token}</strong>?
+              Apply stamp for token: <strong>{scannedData?.token}</strong>?
             </p>
             <div className="flex justify-center gap-3">
               <button
@@ -134,6 +142,6 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
