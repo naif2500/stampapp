@@ -4,7 +4,7 @@ export default function CTASection() {
   return (
     <section className="py-20 px-6">
       <div className=" mx-auto bg-[#333333] rounded-2xl text-white text-center p-12 shadow-lg">
-        <h2 className="text-4xl font-bold mb-6">Klar til at komme i gang?</h2>
+        <h2 className="text-4xl font-bold mb-6" style={{ fontFamily: 'var(--font-unbounded)' }}>Klar til at komme i gang?</h2>
         <p className="text-lg mb-8 max-w-2xl mx-auto">
           Slut dig til tusindvis af virksomheder, der styrker deres loyalitetsprogrammer med Stampify.
           Start din rejse med os i dag!

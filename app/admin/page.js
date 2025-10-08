@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
 import { getAuth, onAuthStateChanged ,setPersistence, browserLocalPersistence } from 'firebase/auth';
+import Image from 'next/image';
 
 const QrScanner = dynamic(() => import('../components/modals/QrScanner'), { ssr: false });
 
@@ -189,89 +190,161 @@ async function updateStampOrRedeem(userId, businessId) {
   );
 
   return (
-     <div className="min-h-screen flex flex-col lg:flex-row">
+     <div className="min-h-screen flex flex-col lg:flex-row bg-[#F5F5F5]">
+
+      
+              
+            
          {/* Sidebar (desktop) / Navbar (mobile) */}
-         <nav className="fixed bottom-0 left-0 w-full border-t md:border-t-0 bg-white  shadow-lg flex space-y-4 items-center py-3 z-40
-                         lg:static lg:flex-col lg:justify-start lg:items-center lg:w-20 lg:h-screen lg:border-r border-gray-500">
-         <Link href="/admin" className="text-gray-600 hover:text-black">
-       <User className="w-6 h-6" />
-     </Link>
-   
-   
-           <Link href="/admin" className="text-gray-600 hover:text-black"  
-           >
-             <Home className="w-6 h-6" />
-           </Link>
-         </nav>
+         <nav className="
+  fixed bottom-0 left-0 w-full bg-[#385C32] border-t shadow-lg z-40
+  flex justify-around items-center py-3
+  lg:static lg:flex-col lg:justify-between lg:items-start lg:w-auto lg:h-screen lg:pr-2
+">
+  {/* --- Top Section (Logo + Business name) --- */}
+  <div className="hidden lg:flex items-center gap-3 px-5 pt-6">
+    <Image
+      src="/Light_green_elephant.png"
+      alt="Elephant logo"
+      width={30}
+      height={30}
+    />
+    <span className="text-[#B8E986] font-semibold text-xl">Stampify</span> 
+    {/* 👆 placeholder business name */}
+  </div>
+
+  {/* --- Main Nav Buttons --- */}
+  <div className="flex flex-1 justify-around lg:justify-start w-full lg:flex-col lg:items-start lg:gap-6 lg:px-5 mt-10">
+    {/* Profile */}
+    <Link
+      href="/admin"
+      className="flex items-center gap-2 text-white hover:text-[#B8E986] transition"
+    >
+      <User className="w-6 h-6" />
+      <span className="hidden lg:inline">Profile</span>
+    </Link>
+
+    {/* Home */}
+    <Link
+      href="/admin"
+      className="flex items-center gap-2 text-white hover:text-[#B8E986] transition"
+    >
+      <Home className="w-6 h-6" />
+      <span className="hidden lg:inline">Home</span>
+    </Link>
+  </div>
+
+  {/* --- Logout Button (Desktop only) --- */}
+  <button
+    onClick={() => {
+      const auth = getAuth();
+      auth.signOut();
+    }}
+    className="hidden lg:flex items-center gap-2 text-white hover:text-[#B8E986] transition mb-6 px-5"
+  >
+    <Info className="w-6 h-6 rotate-180" /> {/* You can replace with a LogOut icon */}
+    <span>Logout</span>
+  </button>
+</nav>
+
    
          {/* Main Content */}
-         <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10">
-      <h1 className="text-xl font-bold mb-4">Customers</h1>
+         <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-4 md:mt-6">
+      <h1 className="text-xl font-bold mb-4 text-gray-800">Kunder</h1>
 
-        <input
-          type="text"
-          placeholder="Search customers..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // reset to first page on search
-          }}
-          className="w-full p-2 border border-gray-500 rounded mb-4"
-        />
+       <div className="flex items-center w-full mb-4">
+  <input
+    type="text"
+    placeholder="Søg kunder..."
+    value={searchTerm}
+    onChange={(e) => {
+      setSearchTerm(e.target.value);
+      setCurrentPage(1); // reset to first page on search
+    }}
+    className="flex-1 p-2 border border-gray-500 rounded-l focus:outline-none"
+  />
+  <button
+    onClick={() => setCurrentPage(1)}
+    className="px-4 py-2 bg-[#385C32] text-white rounded-r hover:bg-[#2f4c29] transition"
+  >
+    Search
+  </button>
+</div>
 
 
       
 
-      <ul className="space-y-4">
-  {paginatedCustomers.map((customer) => {
-    const stamps = customer.stampCount || 0;
-    const stampsNeeded = businessInfo?.stampsNeeded || 9;
+      {/* Customer Table */}
+<div className="overflow-x-auto bg-white rounded-lg shadow">
+  <table className="min-w-full border border-gray-200 text-left">
+    <thead className="bg-white text-sm text-gray-800 border-b border-gray-200">
+      <tr>
+        <th className="px-4 py-2">Name</th>
+        <th className="px-4 py-2">Card Name</th>
+        <th className="px-4 py-2">Stamp Count</th>
+        <th className="px-4 py-2 text-center"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {paginatedCustomers.map((customer) => {
+        const stamps = customer.stampCount || 0;
+        const stampsNeeded = businessInfo?.stampsNeeded || 9;
 
-    return (
-      <li
-        key={customer.id}
-        className="shadow-lg rounded-lg p-4 border border-gray-200 "
-      >
-        {/* Customer Summary */}
-        <Link
-  href={`/admin/customers/${customer.id}`}
-  className="flex justify-between items-center mb-4 border-b border-gray-400 pb-2 text-black hover:bg-gray-100 p-2 rounded"
->
-  <div>
-    <p className="font-semibold">{customer.name || customer.id}</p>
-    <p className="text-sm text-gray-400">1 active card</p>
-  </div>
-
-  {/* Arrow Icon */}
-  <ChevronRight className="h-5 w-5 text-gray-400" />
-</Link>
-
-        {/* Card Info */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-3 rounded-lg bg-white/10">
-          <div className="flex-1">
-            <p className="font-medium">Default Card</p>
-            <p className="text-sm ">
-              {stamps}/{stampsNeeded}
-            </p>
-            <div className="w-md h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#B8E986] transition-all duration-300"
-                style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => updateStampOrRedeem(customer.id, businessId)}
-            className="px-3 py-1 bg-[#B8E986] text-black rounded"
+        return (
+          <tr
+            key={customer.id}
+            className=" hover:bg-gray-50 transition-colors"
           >
-            {stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
-          </button>
-        </div>
-      </li>
-    );
-  })}
-</ul>
+            {/* Name */}
+            <td className="px-4 py-3 font-medium text-gray-800">
+              {customer.name || customer.id}
+            </td>
+
+            {/* Card Name */}
+            <td className="px-4 py-3 text-gray-700">Default Card</td>
+
+            {/* Stamp Count + progress bar */}
+            <td className="px-4 py-3">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-800">
+                  {stamps}/{stampsNeeded}
+                </span>
+                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+                  <div
+                    className="h-full bg-[#B8E986] transition-all duration-300"
+                    style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </td>
+
+            {/* Actions */}
+            <td className="px-4 py-3 flex justify-center items-center gap-3">
+              {/* Add stamp / redeem */}
+              <button
+                onClick={() => updateStampOrRedeem(customer.id, businessId)}
+                className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
+                title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+
+              {/* View details */}
+              <Link
+                href={`/admin/customers/${customer.id}`}
+                className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition"
+                title="View customer details"
+              >
+                <Info className="h-5 w-5 text-gray-600" />
+              </Link>
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
+
 
 
 
@@ -299,7 +372,7 @@ async function updateStampOrRedeem(userId, businessId) {
       <div className="absolute bottom-2 right-2 mb-6">
         <button
           onClick={() => setScanning(true)}
-          className="bg-[#6774CA] text-white cursor-pointer rounded-full p-4 shadow-md transition duration-200"
+          className="bg-[#B8E986] text-[#333333] cursor-pointer rounded-full p-4 shadow-md transition duration-200"
         >
           <QrCodeIcon className="w-6 h-6" />
         </button>
