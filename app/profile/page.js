@@ -79,10 +79,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Logout Button */}
-        <div className="p-6">
+        <div className="p-6 mb-25">
           <button
             onClick={handleLogout}
-            className="w-full max-w-xs mx-auto block py-3 bg-[#6774CA] text-white font-medium rounded-full hover:bg-[#5a6eab] transition"
+            className=" mx-auto block py-3 px-14 bg-[#385C32] text-white font-semibold rounded-lg hover:bg-[#2c4425] transition"
           >
             Log ud
           </button>

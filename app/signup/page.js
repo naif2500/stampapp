@@ -79,7 +79,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="bg-white p-8 rounded-xl max-w-sm w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center">Sign Up</h1>
+        <h1 className="text-xl font-semibold text-center">Tilmeld dig</h1>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
@@ -87,7 +87,7 @@ export default function SignupPage() {
           <form onSubmit={sendOtp} className="space-y-4">
             <input
               type="text"
-              placeholder="Name"
+              placeholder="Navn"
               className="w-full border rounded px-3 py-2"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -96,7 +96,7 @@ export default function SignupPage() {
 
             <input
               type="tel"
-              placeholder="Phone (e.g. +1234567890)"
+              placeholder="Telefonnummer"
               className="w-full border rounded px-3 py-2"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -113,9 +113,9 @@ export default function SignupPage() {
                 className="w-4 h-4"
               />
               <label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the{' '}
+                Jeg accepterer{' '}
                 <a href="/terms" className="text-[#385C32] underline">
-                  Terms & Services
+                  vilkår og betingelser
                 </a>
               </label>
             </div>
@@ -128,7 +128,7 @@ export default function SignupPage() {
               disabled={loading}
               className="w-full bg-[#385C32] text-white rounded mt-4 px-4 py-2 hover:bg-[#2c4a24] transition"
             >
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+              {loading ? 'Sender OTP...' : 'Send OTP'}
             </button>
           </form>
         ) : (
@@ -147,7 +147,7 @@ export default function SignupPage() {
               disabled={loading || !agree}
               className="w-full bg-[#385C32] text-white rounded px-4 py-2 hover:bg-[#2c4a24] transition"
             >
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+              {loading ? 'Sender OTP...' : 'Send OTP'}
             </button>
           </form>
         )}

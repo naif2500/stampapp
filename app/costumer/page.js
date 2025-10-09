@@ -7,7 +7,7 @@ import RedeemModal from '../components/modals/RedeemModal';
 import AddBusinessModal from '../components/modals/AddBusinessModal';
 import LoyaltyCard from '../components/cards/LoyaltyCard';
 import { useEffect, useState } from 'react';
-import { Info, Home, User, Plus } from 'lucide-react';
+import { Info, Check } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
   doc,
@@ -21,6 +21,8 @@ import { getAuth, onAuthStateChanged, setPersistence, indexedDBLocalPersistence}
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useRef } from "react";
 import CustomerNavbar from '../components/CustomerNavbar';
+import CongratsModal from '../components/modals/CongratsModal';
+import Spinner from '../components/ui/Spinner';
 
 
 
@@ -34,7 +36,7 @@ export default function CustomerPage() {
   const [showQrForBusinessId, setShowQrForBusinessId] = useState(null);
   const [notification, setNotification] = useState(null);
   const prevDataRef = useRef({}); // 🔥 store previous state without triggering re-render
-
+  const [loading, setLoading] = useState(true);
 
 
   // ✅ Fetch authenticated user ID
@@ -82,14 +84,30 @@ useEffect(() => {
           newCard.type === "stamp" &&
           newCard.stamps > (oldCard.stamps || 0)
         ) {
-          setNotification(`You received a stamp for ${newCard.name}! 🎉`);
+          setNotification(`Du har modtaget et stempel for ${newCard.name}!`);
           setTimeout(() => setNotification(null), 3000);
         }
       }
 
+      for (const [businessId, newCard] of Object.entries(newData)) {
+  const oldCard = oldData[businessId];
+  
+  // Notify when a stamp is added
+  if (oldCard && newCard.stamps > (oldCard.stamps || 0)) {
+    setNotification(`Du har modtaget et stempel for ${newCard.name}!`);
+  }
+
+  // Show redeem modal when stamps reach the max
+  if (oldCard && newCard.stamps === newCard.stampsNeeded && oldCard.stamps < newCard.stampsNeeded) {
+    setConfirmRedeem(businessId); // opens your RedeemModal
+  }
+}
+     
+
       prevDataRef.current = newData; // ✅ update ref for next comparison
       setJoinedBusinesses(newData);
     }
+    setLoading(false);
   });
 
   return () => unsubscribe();
@@ -164,10 +182,19 @@ useEffect(() => {
     <div className="min-h-screen flex flex-col lg:flex-row">
 
       {notification && (
-  <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
-    {notification}
+  <div
+    className="fixed top-6 left-1/2 -translate-x-1/2 z-50 
+               bg-white text-gray-800 px-6 py-3 
+               rounded-2xl shadow-xl flex items-center gap-3
+               border border-gray-200"
+  >
+    <div className="bg-green-500 text-white rounded-full p-1.5 flex items-center justify-center">
+      <Check className="w-5 h-5" />
+    </div>
+    <span className="font-medium">{notification}</span>
   </div>
 )}
+
 
       {/* Sidebar (desktop) / Navbar (mobile) */}
       <CustomerNavbar />
@@ -177,12 +204,16 @@ useEffect(() => {
           <h1 className="text-4xl font-bold">Hjem</h1>
         </div>
 
-        {Object.keys(joinedBusinesses).length === 0 ? (
-          <div className="flex flex-col items-center justify-center flex-grow text-gray-400">
-            <Info className="w-16 h-16 mb-4" />
-            <p className="text-center text-lg">Click the Add Stamp Card button to get started</p>
-          </div>
-        ) : (
+       {loading ? (
+  <div className="flex flex-col items-center justify-center flex-grow">
+    <Spinner />
+  </div>
+) : Object.keys(joinedBusinesses).length === 0 ? (
+  <div className="flex flex-col items-center justify-center flex-grow text-gray-400">
+    <Info className="w-16 h-16 mb-4" />
+    <p className="text-center text-lg">Klik på plus knappen for at tilføje et stempelkort</p>
+  </div>
+) : (
           <div className="flex flex-wrap gap-4">
             {Object.entries(joinedBusinesses).map(([businessId, data]) => (
               <LoyaltyCard
@@ -235,6 +266,15 @@ useEffect(() => {
             onJoin={joinBusiness}
           />
         )}
+
+        {confirmRedeem && joinedBusinesses[confirmRedeem]?.stamps === joinedBusinesses[confirmRedeem]?.stampsNeeded && (
+  <CongratsModal
+    isOpen={true}
+    onClose={() => setConfirmRedeem(null)}
+    cardName={joinedBusinesses[confirmRedeem]?.cardName}
+  />
+)}
+
       </main>
     </div>
   );

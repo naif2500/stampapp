@@ -28,7 +28,7 @@ export default function QrModal({ businessId, customerId, onClose, logoUrl, card
   }, [businessId, customerId]);
 
   return (
-    <div className="fixed inset-0 bg-[#6774CA] bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-[#385C32] bg-opacity-50 flex justify-center items-center z-50">
       <button
         onClick={onClose}
         className="absolute top-2 left-2 text-white hover:text-black text-xl"

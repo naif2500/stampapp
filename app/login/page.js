@@ -134,10 +134,10 @@ const resendOtp = async () => {
         alt="Elephant"
         className="w-14 h-14 mb-6 mx-auto"
       />
-          <h2 className="text-2xl text-center font-bold text-black mb-2">Welcome</h2>
-      <p className="text-black text-center mb-8">
-        Login with your phone number
-      </p>
+          <h2 className="text-2xl text-center font-bold text-black mb-2">Velkommen</h2>
+          <p className="text-black text-center mb-8">
+            Log ind med dit telefonnummer
+          </p>
           <input
             type="tel"
             placeholder="Telefonnummer"
@@ -153,14 +153,14 @@ const resendOtp = async () => {
             disabled={loading}
             className="bg-[#385C32] text-white py-2 rounded"
           >
-            {loading ? 'Sending OTP...' : 'Send OTP'}
+            {loading ? 'Sender kode...' : 'Send kode'}
           </button>
           <p className="text-center text-sm mt-2 text-gray-600">
-      har du ikke en konto?{' '}
-      <a href="/signup" className="text-[#385C32] font-semibold underline">
-        Signup
-      </a>
-    </p>
+            Har du ikke en konto?{' '}
+            <a href="/signup" className="text-[#385C32] font-semibold underline">
+              Opret bruger
+            </a>
+          </p>
         </form>
       ) : (
         <form onSubmit={verifyOtp} className="flex flex-col gap-4">
@@ -169,7 +169,7 @@ const resendOtp = async () => {
       Vi har sendt dig en SMS
     </p>
     <p className="text-center text-gray-500 mb-4 text-sm">
-      Skriv koden der er sendt til <span className="font-semibold">{phone}</span>
+      Indtast koden sendt til <span className="font-semibold">{phone}</span>
     </p>
 
     {/* ✅ 6-digit OTP input */}
@@ -195,10 +195,10 @@ const resendOtp = async () => {
       disabled={loading}
       className="bg-[#385C32] text-white py-2 rounded"
     >
-      {loading ? 'Verifying...' : 'Verify OTP'}
+      {loading ? 'Bekræfter...' : 'Bekræft kode'}
     </button>
 
-     <p className="text-center text-sm mt-2 text-gray-600">
+    <p className="text-center text-sm mt-2 text-gray-600">
       Har du ikke modtaget koden?{' '}
       <button
         type="button"

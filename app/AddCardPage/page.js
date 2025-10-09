@@ -58,13 +58,13 @@ export default function AddBusinessPage() {
       <CustomerNavbar />
       <main className="flex-1 bg-white px-4 pt-10 py-6 lg:px-24">
         <h2 className="text-2xl font-bold mb-6 mt-2">
-          Add a Stamp Card
+          Virksomheder
         </h2>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search businesses..."
+          placeholder="Søg..."
           className="w-full border rounded-lg p-2 mb-4"
         />
         {filteredBusinesses.length > 0 ? (
@@ -83,7 +83,7 @@ export default function AddBusinessPage() {
                   />
                   <div>
                     <div className="font-semibold text-lg">{b.name}</div>
-                    <div className="text-sm text-gray-500">City Name</div>
+                    <div className="text-sm text-gray-500">By, Postnummer</div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -91,7 +91,7 @@ export default function AddBusinessPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-center text-gray-500">No businesses match your search</p>
+          <p className="text-center text-gray-500">Ingen virksomheder matcher din søgning</p>
         )}
       </main>
     </div>

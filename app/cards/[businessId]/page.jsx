@@ -66,7 +66,7 @@ export default function CardDetailPage() {
   }, [businessId]);
 
   if (loading) return <p>Loading...</p>;
-  if (!cardData) return <p>Card not found or not joined.</p>;
+  if (!cardData) return <p>Kort ikke fundet eller ikke tilsluttet.</p>;
 
   return (
     <div className="min-h-screen p-6 flex flex-col items-center">
@@ -88,9 +88,9 @@ export default function CardDetailPage() {
 
       {/* Logs Container */}
       <div className="mt-6 w-full max-w-sm bg-white shadow-md rounded-xl p-4">
-        <h2 className="text-md text-gray-800 font-semibold mb-4">Latest Activity</h2>
+        <h2 className="text-md text-gray-800 font-semibold mb-4">Seneste aktivitet</h2>
         {logs.length === 0 ? (
-          <p className="text-gray-500 text-sm">No activity yet.</p>
+          <p className="text-gray-500 text-sm">Ingen aktivitet endnu.</p>
         ) : (
           <div className="grid grid-cols-2 gap-y-3 text-sm">
             {logs.map((log) => (
@@ -100,9 +100,9 @@ export default function CardDetailPage() {
                 </div>
                 <div className="text-gray-800 flex justify-end">
                   {log.type === 'stamp'
-                    ? 'You received a stamp'
+                    ? 'Du har modtaget et stempel'
                     : log.type === 'redeem'
-                    ? 'You redeemed'
+                    ? 'Du har indløst en belønning'
                     : log.type}
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function CardDetailPage() {
             onClick={() => setShowQr(true)}
             className="w-full py-3 bg-[#385C32] text-white rounded-xl font-semibold shadow-md"
           >
-            Show QR Code
+            Vis QR-kode
           </button>
         </div>
       )}
