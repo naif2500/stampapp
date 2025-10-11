@@ -27,19 +27,19 @@ export default function TutorialPage() {
      <div className="min-h-screen flex flex-col bg-gray-100">
       <FixedNavbar title="" />
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-start px-6 pt-30">
+      <div className="flex-1 flex flex-col items-center justify-start  ">
 
         {/* Image */}
-      <div className="w-72 h-70 bg-[#B8E986] flex justify-center mb-4 rounded-lg overflow-hidden">
+      <div className="w-full h-90 bg-[#B8E986] flex justify-center mb-4 rounded-lg overflow-hidden">
       <img
       src={slides[currentSlide].image}
       alt="Tutorial"
-      className="w-68 h-68 object-contain -mt-10"
+      className="w-74 h-74 object-contain -mt-10"
       />
        </div>
     
         {/* Title */}
-        <h1 className="text-xl font-bold text-center mb-2">
+        <h1 className="text-2xl font-bold text-center mt-4 mb-2">
           Tilføj til hjemmeskærm
         </h1>
 

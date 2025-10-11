@@ -77,9 +77,13 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <div className="bg-white p-8 rounded-xl max-w-sm w-full space-y-4">
-        <h1 className="text-xl font-semibold text-center">Tilmeld dig</h1>
+    <div className="min-h-screen flex  justify-center bg-white px-4 ">
+      
+      <div className="bg-white rounded-xl max-w-sm w-full  mt-25">
+        <h1 className="text-2xl text-gray-800 font-semibold text-center">Tilmeld dig</h1>
+         <p className="text-gray-600 text-center mb-8 mt-2">
+            Opret dig for at komme i gang!
+          </p>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
@@ -130,9 +134,20 @@ export default function SignupPage() {
             >
               {loading ? 'Sender OTP...' : 'Send OTP'}
             </button>
+
+             <p className="text-center text-sm mt-6 text-gray-600">
+            Har du allerede en konto?{' '}
+            <a href="/login" className="text-[#385C32] font-semibold underline">
+              Log ind
+            </a>
+          </p>
           </form>
+          
         ) : (
           <form onSubmit={verifyOtp} className="space-y-4">
+            <p className="text-center text-gray-700 mb-2 font-bold">
+              Vi har sendt dig en SMS
+            </p>
             <input
               type="text"
               placeholder="Enter OTP"

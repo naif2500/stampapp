@@ -43,7 +43,7 @@ export default function QrModal({ businessId, customerId, onClose, logoUrl, card
           className="w-20 h-20 rounded-full absolute -top-10 left-1/2 transform -translate-x-1/2 border-1 border-white bg-white"
         />
         <h2 className="text-lg font-semibold mt-6 mb-2">{cardName}</h2>
-        <p className="mb-6 text-xs">Scan this QR code to get your stamps!</p>
+        <p className="mb-6 text-xs">Scan denne QR-kode for at få dine stempler!</p>
         {token && <QRCodeCanvas value={JSON.stringify({ businessId, token })} size={180} />}
       </div>
     </div>

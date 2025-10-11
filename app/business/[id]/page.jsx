@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard'; // ✅ import
 import { AddCardButton } from '../../components/AddCardButton';
 import FixedNavbar from '../../components/FixedNavbar';
+import Spinner from '../../components/ui/Spinner';
 
 export default function BusinessDetailPage() {
   const { id } = useParams();
@@ -81,12 +82,12 @@ await updateDoc(userRef, {
     router.push('/costumer');
   };
 
-  if (!business) return <p className="text-center mt-20">Loading...</p>;
+  if (!business) return <div className="text-center mt-20"><Spinner /></div>;
 
   return (
     <div className="min-h-screen bg-white px-4 pt-20 py-6 lg:px-24">
-      
-      <FixedNavbar title="Business detail" />
+
+      <FixedNavbar title="Virksomhed detaljer" />
 
       {/* Top section: logo + name */}
       <div className="flex flex-col items-center text-center mb-8">
@@ -99,9 +100,9 @@ await updateDoc(userRef, {
         <p className="text-gray-500">{business.city || 'City Name'}</p>
       </div>
 
-       {/* Available cards */}
+       {/* Tilgængelige kort */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Available Cards</h3>
+        <h3 className="text-xl font-semibold">Tilgængelige kort</h3>
       </div>
 
       {/* Clickable card */}

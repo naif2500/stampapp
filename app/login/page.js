@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getAuth, setPersistence, browserLocalPersistence,indexedDBLocalPersistence, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
+
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState(new Array(6).fill(''));
@@ -134,8 +135,8 @@ const resendOtp = async () => {
         alt="Elephant"
         className="w-14 h-14 mb-6 mx-auto"
       />
-          <h2 className="text-2xl text-center font-bold text-black mb-2">Velkommen</h2>
-          <p className="text-black text-center mb-8">
+          <h2 className="text-2xl text-center font-bold text-gray-700 mb-2">Velkommen</h2>
+          <p className="text-gray-600 text-center mb-8">
             Log ind med dit telefonnummer
           </p>
           <input
@@ -164,8 +165,10 @@ const resendOtp = async () => {
         </form>
       ) : (
         <form onSubmit={verifyOtp} className="flex flex-col gap-4">
+
+          
     {/* ✅ Message above OTP inputs */}
-    <p className="text-center text-gray-700 mb-2 font-bold">
+    <p className="text-center text-lg text-gray-700 mb-2 font-bold">
       Vi har sendt dig en SMS
     </p>
     <p className="text-center text-gray-500 mb-4 text-sm">
