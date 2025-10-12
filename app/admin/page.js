@@ -214,7 +214,7 @@ async function updateStampOrRedeem(userId, businessId) {
   </div>
 
   {/* --- Main Nav Buttons --- */}
-  <div className="flex flex-1 justify-around lg:justify-start w-full lg:flex-col lg:items-start lg:gap-6 lg:px-5 mt-10">
+  <div className="flex flex-1 justify-around py-2 lg:justify-start w-full lg:flex-col lg:items-start lg:gap-6 lg:px-5 lg:mt-10">
     {/* Profile */}
     <Link
       href="/admin"
@@ -250,7 +250,7 @@ async function updateStampOrRedeem(userId, businessId) {
    
          {/* Main Content */}
          <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-4 md:mt-6">
-      <h1 className="text-xl font-bold mb-4 text-gray-800">Kunder</h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">Kunder</h1>
 
        <div className="flex items-center w-full mb-4">
   <input
@@ -261,13 +261,13 @@ async function updateStampOrRedeem(userId, businessId) {
       setSearchTerm(e.target.value);
       setCurrentPage(1); // reset to first page on search
     }}
-    className="flex-1 p-2 border border-gray-500 rounded-l focus:outline-none"
+    className="flex-1 p-2 border border-[#385C32] bg-white rounded-l focus:outline-none"
   />
   <button
     onClick={() => setCurrentPage(1)}
-    className="px-4 py-2 bg-[#385C32] text-white rounded-r hover:bg-[#2f4c29] transition"
+    className="px-4 py-2 bg-[#385C32] border border-[#385C32] text-white rounded-r hover:bg-[#2f4c29] transition"
   >
-    Search
+    Søg
   </button>
 </div>
 
@@ -275,75 +275,117 @@ async function updateStampOrRedeem(userId, businessId) {
       
 
       {/* Customer Table */}
-<div className="overflow-x-auto bg-white rounded-lg shadow">
-  <table className="min-w-full border border-gray-200 text-left">
-    <thead className="bg-white text-sm text-gray-800 border-b border-gray-200">
-      <tr>
-        <th className="px-4 py-2">Name</th>
-        <th className="px-4 py-2">Card Name</th>
-        <th className="px-4 py-2">Stamp Count</th>
-        <th className="px-4 py-2 text-center"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {paginatedCustomers.map((customer) => {
-        const stamps = customer.stampCount || 0;
-        const stampsNeeded = businessInfo?.stampsNeeded || 9;
+{/* Responsive Customer List */}
+<div className="bg-white rounded-lg shadow">
+  {/* Desktop Table */}
+  <div className="hidden md:block overflow-x-auto">
+    <table className="min-w-full border border-gray-200 text-left">
+      <thead className="bg-white text-sm text-gray-800 border-b border-gray-200">
+        <tr>
+          <th className="px-4 py-2">Name</th>
+          <th className="px-4 py-2">Card Name</th>
+          <th className="px-4 py-2">Stamp Count</th>
+          <th className="px-4 py-2 text-center"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {paginatedCustomers.map((customer) => {
+          const stamps = customer.stampCount || 0;
+          const stampsNeeded = businessInfo?.stampsNeeded || 9;
 
-        return (
-          <tr
-            key={customer.id}
-            className=" hover:bg-gray-50 transition-colors"
-          >
-            {/* Name */}
-            <td className="px-4 py-3 font-medium text-gray-800">
-              {customer.name || customer.id}
-            </td>
-
-            {/* Card Name */}
-            <td className="px-4 py-3 text-gray-700">Default Card</td>
-
-            {/* Stamp Count + progress bar */}
-            <td className="px-4 py-3">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-800">
-                  {stamps}/{stampsNeeded}
-                </span>
-                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
-                  <div
-                    className="h-full bg-[#B8E986] transition-all duration-300"
-                    style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
-                  />
+          return (
+            <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+              <td className="px-4 py-3 font-medium text-gray-800">
+                {customer.name || customer.id}
+              </td>
+              <td className="px-4 py-3 text-gray-700">Default Card</td>
+              <td className="px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-800">
+                    {stamps}/{stampsNeeded}
+                  </span>
+                  <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+                    <div
+                      className="h-full bg-[#B8E986] transition-all duration-300"
+                      style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
+              </td>
+              <td className="px-4 py-3 flex justify-center items-center gap-3">
+                <button
+                  onClick={() => updateStampOrRedeem(customer.id, businessId)}
+                  className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
+                  title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+                <Link
+                  href={`/admin/customers/${customer.id}`}
+                  className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition"
+                  title="View customer details"
+                >
+                  <Info className="h-5 w-5 text-gray-600" />
+                </Link>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  {/* Mobile Cards */}
+  <div className="md:hidden flex flex-col divide-y divide-gray-200">
+    {paginatedCustomers.map((customer) => {
+      const stamps = customer.stampCount || 0;
+      const stampsNeeded = businessInfo?.stampsNeeded || 9;
+
+      return (
+        <div key={customer.id} className="p-4">
+          {/* User Info */}
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <p className="font-semibold text-gray-800">{customer.name || customer.id}</p>
+              <p className="text-sm text-gray-500">Default Card</p>
+            </div>
+            <Link
+              href={`/admin/customers/${customer.id}`}
+              className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition"
+              title="View customer details"
+            >
+              <Info className="h-5 w-5 text-gray-600" />
+            </Link>
+          </div>
+
+          {/* Card Info */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-800">
+                {stamps}/{stampsNeeded} stamps
+              </p>
+              <div className="w-40 h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full bg-[#B8E986] transition-all duration-300"
+                  style={{ width: `${Math.min((stamps / stampsNeeded) * 100, 100)}%` }}
+                />
               </div>
-            </td>
+            </div>
 
-            {/* Actions */}
-            <td className="px-4 py-3 flex justify-center items-center gap-3">
-              {/* Add stamp / redeem */}
-              <button
-                onClick={() => updateStampOrRedeem(customer.id, businessId)}
-                className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
-                title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
-              >
-                <Plus className="h-5 w-5" />
-              </button>
-
-              {/* View details */}
-              <Link
-                href={`/admin/customers/${customer.id}`}
-                className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition"
-                title="View customer details"
-              >
-                <Info className="h-5 w-5 text-gray-600" />
-              </Link>
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
+            <button
+              onClick={() => updateStampOrRedeem(customer.id, businessId)}
+              className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
+              title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
 </div>
+
 
 
 

@@ -184,7 +184,7 @@ useEffect(() => {
       {notification && (
   <div
     className="fixed top-6 left-1/2 -translate-x-1/2 z-50 
-               bg-white text-gray-800 px-6 py-3 
+               bg-white text-gray-800 px-2 mb:px-6 py-3 
                rounded-2xl shadow-xl flex items-center gap-3
                border border-gray-200"
   >
