@@ -1,10 +1,11 @@
 'use client';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import CustomerNavbar from '../components/CustomerNavbar';
 
 
@@ -18,7 +19,7 @@ export default function AddBusinessPage() {
 
   // Fetch customer ID
   useEffect(() => {
-    const auth = getAuth();
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push('/login');
@@ -57,16 +58,22 @@ export default function AddBusinessPage() {
     <div className="min-h-screen flex flex-col lg:flex-row">
       <CustomerNavbar />
       <main className="flex-1 bg-white px-4 pt-10 py-6 lg:px-24">
-        <h2 className="text-2xl font-bold mb-6 mt-2">
+        <h2 className="text-3xl text-gray-900 font-bold mb-6 mt-2">
           Virksomheder
         </h2>
+        <div className="relative w-full mb-4">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Søg..."
-          className="w-full border rounded-lg p-2 mb-4"
+          className="w-full border bg-gray-200 shadow-sm border-gray-200 rounded-lg py-2 p-2 pl-10" // extra left padding for icon
         />
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
+          size={20}
+        />
+      </div>
         {filteredBusinesses.length > 0 ? (
           <ul className="space-y-4">
             {filteredBusinesses.map((b) => (
@@ -82,11 +89,11 @@ export default function AddBusinessPage() {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <div className="font-semibold text-lg">{b.name}</div>
+                    <div className="font-semibold text-gray-800 text-lg">{b.name}</div>
                     <div className="text-sm text-gray-500">By, Postnummer</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-gray-700" />
               </li>
             ))}
           </ul>

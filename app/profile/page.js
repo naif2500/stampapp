@@ -1,6 +1,7 @@
 'use client';
 
-import { getAuth, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import {
   Settings,
@@ -16,7 +17,6 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const auth = getAuth();
     await signOut(auth);
     router.push('/login');
   };
