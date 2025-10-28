@@ -8,8 +8,9 @@ const db = admin.firestore();
  * Triggered when a user requests to join a business loyalty program.
  * Handles all secure writes to Firestore.
  */
-const onUserJoinMembership = functions.firestore
-  .document("membershipRequests/{requestId}")
+const onUserJoinMembership = functions
+  .region("europe-north1") // 👈 deploys in Finland (closest to Denmark)
+  .firestore.document("membershipRequests/{requestId}")
   .onCreate(async (snap) => {
     const data = snap.data();
     const { businessId, customerId } = data;

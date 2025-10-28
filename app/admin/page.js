@@ -87,7 +87,7 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
   updateStampOrRedeem(userId, businessId);
 
   // 2️⃣ Call the Cloud Function for secure backend updates
-  const functions = getFunctions(undefined, "us-central1");
+  const functions = getFunctions(undefined, "europe-north1");
   const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
 
   try {

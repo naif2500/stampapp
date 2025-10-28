@@ -7,7 +7,9 @@ const db = admin.firestore();
  * Cloud Function to add a stamp or redeem a loyalty card for a user.
  * Triggered via HTTPS callable function.
  */
-exports.updateStampOrRedeem = functions.https.onCall(async (data, context) => {
+exports.updateStampOrRedeem = functions
+  .region("europe-north1") // 👈 deploy this function in Finland (closest to Denmark)
+  .https.onCall(async (data, context) => {
   const { userId, businessId } = data;
 
   if (!context.auth) {
