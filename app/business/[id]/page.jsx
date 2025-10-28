@@ -52,6 +52,8 @@ export default function BusinessDetailPage() {
 const userSnap = await getDoc(userRef);
 const currentJoined = userSnap.data()?.joinedBusinesses || {};
 
+try {
+
 await updateDoc(userRef, {
   joinedBusinesses: {
     ...currentJoined,
@@ -79,7 +81,18 @@ await updateDoc(userRef, {
       createdAt: new Date(),
     });
 
+     // NEW: trigger Cloud Function
+  await setDoc(doc(db, "membershipRequests", `${business.id}_${customerId}`), {
+    businessId: business.id,
+    customerId,
+    timestamp: new Date(),
+  });
+
+
     router.push('/costumer');
+} catch (error) {
+  console.error("Error joining business:", error);
+}
   };
 
   if (!business) return <div className="text-center mt-20"><Spinner /></div>;

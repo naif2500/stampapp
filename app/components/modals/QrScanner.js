@@ -3,6 +3,7 @@
 import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { db } from '@/lib/firebase';
 import { X } from 'lucide-react';
 
@@ -74,10 +75,27 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
       const tokenSnap = await getDoc(tokenRef);
       const customerId = tokenSnap.data().customerId;
 
-      await updateStampOrRedeem(customerId, tokenBusinessId);
-      onScanSuccess?.(customerId);
+      // 2️⃣ Call your local update function for instant UI feedback
+await updateStampOrRedeem(customerId, tokenBusinessId);
 
-      alert("Stamp applied successfully!");
+// 3️⃣ Call your Cloud Function securely
+const functions = getFunctions(undefined, "us-central1"); // match your region
+const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
+
+try {
+  const result = await updateStampOrRedeemFn({
+    userId: customerId,
+    businessId: tokenBusinessId,
+  });
+  console.log("✅ Cloud Function result:", result.data);
+} catch (fnError) {
+  console.error("⚠️ Cloud Function error:", fnError);
+}
+
+// 4️⃣ Notify success
+onScanSuccess?.(customerId);
+alert("Stamp applied successfully!");
+
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to process QR code");

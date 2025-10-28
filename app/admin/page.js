@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic';
 import { QrCodeIcon } from '@heroicons/react/24/solid';
 import { getAuth, onAuthStateChanged ,setPersistence, browserLocalPersistence } from 'firebase/auth';
 import Image from 'next/image';
+import { getFunctions, httpsCallable } from "firebase/functions";
+
 
 const QrScanner = dynamic(() => import('../components/modals/QrScanner'), { ssr: false });
 
@@ -80,6 +82,21 @@ useEffect(() => {
 }, [isAuthenticated]);
 
 
+async function handleUpdateStampOrRedeemBoth(userId, businessId) {
+  // 1️⃣ Call your old local function for immediate UI/state updates
+  updateStampOrRedeem(userId, businessId);
+
+  // 2️⃣ Call the Cloud Function for secure backend updates
+  const functions = getFunctions(undefined, "us-central1");
+  const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
+
+  try {
+    const result = await updateStampOrRedeemFn({ userId, businessId });
+    console.log("Cloud function result:", result.data);
+  } catch (error) {
+    console.error("Error calling cloud function:", error);
+  }
+}
 
 
 
@@ -314,7 +331,7 @@ async function updateStampOrRedeem(userId, businessId) {
               </td>
               <td className="px-4 py-3 flex justify-center items-center gap-3">
                 <button
-                  onClick={() => updateStampOrRedeem(customer.id, businessId)}
+                  onClick={() => handleUpdateStampOrRedeemBoth(customer.id, businessId)}
                   className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
                   title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
                 >
