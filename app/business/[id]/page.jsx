@@ -5,9 +5,11 @@ import { doc, getDoc, updateDoc, collection, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard'; // ✅ import
-import { AddCardButton } from '../../components/AddCardButton';
+import { useSearchParams } from 'next/navigation';
 import FixedNavbar from '../../components/FixedNavbar';
 import Spinner from '../../components/ui/Spinner';
+import JoinBusinessModal from '../../components/modals/JoinBusinessModal';
+
 
 export default function BusinessDetailPage() {
   const { id } = useParams();
@@ -15,6 +17,10 @@ export default function BusinessDetailPage() {
   const [business, setBusiness] = useState(null);
   const [customerId, setCustomerId] = useState(null);
   const [joinedBusinesses, setJoinedBusinesses] = useState({});
+  const searchParams = useSearchParams();
+  const fromQR = searchParams.get('fromQR') === 'true';
+  const [showJoinModal, setShowJoinModal] = useState(false);
+
 
   // Auth
   useEffect(() => {
@@ -41,6 +47,14 @@ export default function BusinessDetailPage() {
     };
     fetchBusiness();
   }, [id]);
+
+  useEffect(() => {
+  if (fromQR && business && customerId) {
+    // ✅ Only show modal — don’t auto-join
+    setShowJoinModal(true);
+  }
+}, [fromQR, business, customerId]);
+
 
   const joinBusiness = async () => {
     if (!customerId || !business) return;
@@ -81,6 +95,12 @@ await updateDoc(userRef, {
       createdAt: new Date(),
     });
 
+    console.log("Joining business:", {
+  businessId: business.id,
+  customerId,
+  authUser: getAuth().currentUser?.uid
+});
+
      // NEW: trigger Cloud Function
   await setDoc(doc(db, "membershipRequests", `${business.id}_${customerId}`), {
     businessId: business.id,
@@ -89,11 +109,15 @@ await updateDoc(userRef, {
   });
 
 
-    router.push('/costumer');
-} catch (error) {
-  console.error("Error joining business:", error);
-}
-  };
+    if (fromQR) {
+      setShowJoinModal(true); // ✅ show modal instead of redirecting right away
+    } else {
+      router.push('/costumer');
+    }
+  } catch (error) {
+    console.error("Error joining business:", error);
+  }
+};
 
   if (!business) return <div className="text-center mt-20"><Spinner /></div>;
 
@@ -120,7 +144,10 @@ await updateDoc(userRef, {
 
       {/* Clickable card */}
       <div className="space-y-4">
-        <div onClick={joinBusiness} className="cursor-pointer">
+        <div
+  onClick={!fromQR ? joinBusiness : undefined}
+  className={`${fromQR ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+>
           <LoyaltyCard
             businessId={business.id}
             name={business.name}
@@ -131,6 +158,23 @@ await updateDoc(userRef, {
           />
         </div>
       </div>
+
+      {showJoinModal && (
+  <JoinBusinessModal
+    business={business}
+    onConfirm={async () => {
+      await joinBusiness();
+      setShowJoinModal(false);
+      router.push('/costumer');
+    }}
+    onClose={() => {
+      setShowJoinModal(false);
+      router.push('/costumer');
+    }}
+  />
+)}
+
+
     </div>
   );
 }

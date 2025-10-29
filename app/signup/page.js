@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -16,6 +16,9 @@ export default function SignupPage() {
   const [agree, setAgree] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams(); 
+  const businessId = searchParams.get('businessId'); 
+  const fromQR = searchParams.get('fromQR') === 'true'; 
 
   const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
@@ -39,7 +42,11 @@ export default function SignupPage() {
 
     try {
       const appVerifier = setupRecaptcha();
-      const confirmation = await signInWithPhoneNumber(auth, phone, appVerifier);
+      let formattedPhone = phone.trim();
+    if (!formattedPhone.startsWith('+')) {
+      formattedPhone = '+45' + formattedPhone; // automatically add Danish country code
+    }
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confirmation);
     } catch (err) {
       console.error(err);
@@ -67,10 +74,15 @@ export default function SignupPage() {
         createdAt: new Date(),
       });
 
-      router.push('/tutorial');
+
+ if (fromQR && businessId) {
+        router.replace(`/business/${businessId}?fromQR=true`);
+      } else {
+        router.push('/tutorial');
+      }
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Invalid OTP');
+      setError(err.message || 'Ugyldig OTP');
     } finally {
       setLoading(false);
     }

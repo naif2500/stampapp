@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, setPersistence, browserLocalPersistence,indexedDBLocalPersistence, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -14,6 +14,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams(); // ✅ added
+  const businessId = searchParams.get('businessId');
+  const fromQR = searchParams.get('fromQR') === 'true';
 
   
 
@@ -81,7 +84,7 @@ const handleOtpChange = (element, index) => {
 };
 
 
-  const verifyOtp = async (e) => {
+const verifyOtp = async (e) => {
   e.preventDefault();
   setError('');
   setLoading(true);
@@ -89,8 +92,19 @@ const handleOtpChange = (element, index) => {
   const otpCode = otp.join(''); // combine all 6 digits
 
   try {
+    if (!confirmationResult) {
+      throw new Error('No confirmation result available. Please request a new code.');
+    }
+
+    // confirm the OTP with Firebase
     await confirmationResult.confirm(otpCode);
-    router.push('/costumer'); // dashboard
+
+    // ✅ NEW: redirect logic
+    if (fromQR && businessId) {
+      router.replace(`/business/${businessId}?fromQR=true`);
+    } else {
+      router.push('/costumer');
+    }
   } catch (err) {
     console.error(err);
     setError(err.message || 'Invalid OTP');
