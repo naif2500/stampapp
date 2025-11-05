@@ -32,19 +32,18 @@ export default function CustomerPage() {
   const [availableBusinesses, setAvailableBusinesses] = useState([]);
   const [confirmRedeem, setConfirmRedeem] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [customerId, setCustomerId] = useState(null); // ✅ dynamic state
+  const [customerId, setCustomerId] = useState(null); //dynamic state
   const [showQrForBusinessId, setShowQrForBusinessId] = useState(null);
   const [notification, setNotification] = useState(null);
-  const prevDataRef = useRef({}); // 🔥 store previous state without triggering re-render
+  const prevDataRef = useRef({}); //store previous state without triggering re-render
   const [loading, setLoading] = useState(true);
 
 
-  // ✅ Fetch authenticated user ID
+  // Fetch authenticated user ID
   useEffect(() => {
     const auth = getAuth();
  setPersistence(auth, indexedDBLocalPersistence)
     .then(() => {
-      // persistence set correctly for PWA
     })
     .catch((err) => console.error('Failed to set persistence', err));
 
@@ -59,7 +58,7 @@ export default function CustomerPage() {
           setJoinedBusinesses(userSnap.data().joinedBusinesses || {});
         }
       }  else {
-        // ❗ Redirect to login page if unauthenticated
+        //Redirect to login page if unauthenticated
         router.push('/login');
       }
     });
@@ -84,7 +83,7 @@ useEffect(() => {
           newCard.type === "stamp" &&
           newCard.stamps > (oldCard.stamps || 0)
         ) {
-          setNotification(`Du har modtaget et stempel for ${newCard.name}!`);
+          setNotification(`Du modtog et stempel for ${newCard.name}!`);
           setTimeout(() => setNotification(null), 3000);
         }
       }
@@ -94,7 +93,7 @@ useEffect(() => {
   
   // Notify when a stamp is added
   if (oldCard && newCard.stamps > (oldCard.stamps || 0)) {
-    setNotification(`Du har modtaget et stempel for ${newCard.name}!`);
+    setNotification(`Du modtog et stempel for ${newCard.name}!`);
   }
 
   // Show redeem modal when stamps reach the max
@@ -104,7 +103,7 @@ useEffect(() => {
 }
      
 
-      prevDataRef.current = newData; // ✅ update ref for next comparison
+      prevDataRef.current = newData; // update ref for next comparison
       setJoinedBusinesses(newData);
     }
     setLoading(false);
@@ -186,7 +185,7 @@ useEffect(() => {
     className="fixed top-6 left-1/2 -translate-x-1/2 z-50 
                bg-white text-gray-800 px-2 mb:px-6 py-3 
                rounded-2xl shadow-xl flex items-center gap-3
-               border border-gray-200"
+               border border-gray-200 whitespace-nowrap"
   >
     <div className="bg-green-500 text-white rounded-full p-1.5 flex items-center justify-center">
       <Check className="w-5 h-5" />

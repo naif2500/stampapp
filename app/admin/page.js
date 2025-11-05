@@ -23,7 +23,7 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [businessInfo, setBusinessInfo] = useState(null);
 
-  const itemsPerPage = 5; // 👈 Adjust as needed
+  const itemsPerPage = 5; // 
 
 
 
@@ -83,10 +83,7 @@ useEffect(() => {
 
 
 async function handleUpdateStampOrRedeemBoth(userId, businessId) {
-  // 1️⃣ Call your old local function for immediate UI/state updates
-  updateStampOrRedeem(userId, businessId);
-
-  // 2️⃣ Call the Cloud Function for secure backend updates
+  
   const functions = getFunctions(undefined, "europe-north1");
   const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
 
@@ -102,80 +99,6 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
 
 
 
-async function updateStampOrRedeem(userId, businessId) {
-  const userRef = doc(db, 'users', userId);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) return;
-
-  const userData = userSnap.data();
-  const updatedBusinesses = { ...userData.joinedBusinesses };
-
-  const card = updatedBusinesses[businessId];
-  if (!card || card.type !== "stamp") return; // nothing to update
-
-  const currentStamps = card.stamps || 0;
-  const needed = card.stampsNeeded || 9;
-
-  const customerRef = doc(db, `businesses/${businessId}/customers`, userId);
-  const historyRef = collection(customerRef, "history");
-  const userHistoryRef = collection(userRef, "history");
-
-  if (currentStamps < needed) {
-    // ✅ Add a stamp
-    updatedBusinesses[businessId].stamps = currentStamps + 1;
-
-    await updateDoc(customerRef, {
-      stampCount: currentStamps + 1,
-      lastStampTime: new Date()
-    });
-
-    await updateDoc(userRef, {
-      joinedBusinesses: updatedBusinesses,
-      lastStampTime: new Date()
-    });
-
-      const log = {
-      type: "stamp",
-      businessId,
-      timestamp: new Date()
-    };
-
-    await addDoc(historyRef, log);
-    await addDoc(userHistoryRef, log);
-
-  } else if (currentStamps === needed) {
-    // 🎉 Redeem
-    updatedBusinesses[businessId].stamps = 0;
-
-    await updateDoc(customerRef, {
-      stampCount: 0,
-      lastRedeemTime: new Date()
-    });
-
-    await updateDoc(userRef, {
-      joinedBusinesses: updatedBusinesses,
-      lastRedeemTime: new Date()
-    });
-
-   const log = {
-      type: "redeem",
-      businessId,
-      timestamp: new Date()
-    };
-
-    await addDoc(historyRef, log);
-    await addDoc(userHistoryRef, log);
-  }
-
-  // 🔥 Update Admin UI
-  setCustomers(prev =>
-    prev.map(c =>
-      c.id === userId
-        ? { ...c, joinedBusinesses: updatedBusinesses }
-        : c
-    )
-  );
-}
 
 
 
@@ -193,13 +116,13 @@ async function updateStampOrRedeem(userId, businessId) {
     return null; // Return nothing or show an unauthorized page if not authenticated
   }
 
-  // 🔍 Search filter
+  // Search filter
   const filteredCustomers = customers.filter(c =>
     (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 📄 Pagination
+  // Pagination
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const paginatedCustomers = filteredCustomers.slice(
     (currentPage - 1) * itemsPerPage,
@@ -227,7 +150,7 @@ async function updateStampOrRedeem(userId, businessId) {
       height={30}
     />
     <span className="text-[#B8E986] font-semibold text-xl">Stampify</span> 
-    {/* 👆 placeholder business name */}
+    {/* placeholder business name */}
   </div>
 
   {/* --- Main Nav Buttons --- */}
@@ -240,6 +163,8 @@ async function updateStampOrRedeem(userId, businessId) {
       <User className="w-6 h-6" />
       <span className="hidden lg:inline">Profile</span>
     </Link>
+
+   
 
     {/* Home */}
     <Link
@@ -390,7 +315,7 @@ async function updateStampOrRedeem(userId, businessId) {
             </div>
 
             <button
-              onClick={() => updateStampOrRedeem(customer.id, businessId)}
+              onClick={() => handleUpdateStampOrRedeemBoth(customer.id, businessId)}
               className="p-2 bg-[#B8E986] text-black rounded-lg hover:bg-[#A5DB7A] transition"
               title={stamps === stampsNeeded ? "Redeem" : "Add Stamp"}
             >
@@ -428,7 +353,7 @@ async function updateStampOrRedeem(userId, businessId) {
         )}
 
 
-      <div className="absolute bottom-2 right-2 mb-6">
+      <div className="absolute bottom-2 right-2 mb-18 lg:hidden">
         <button
           onClick={() => setScanning(true)}
           className="bg-[#B8E986] text-[#333333] cursor-pointer rounded-full p-4 shadow-md transition duration-200"
@@ -440,7 +365,7 @@ async function updateStampOrRedeem(userId, businessId) {
       {scanning && businessId && (
         <QrScanner
           businessId={businessId}
-          updateStampOrRedeem={updateStampOrRedeem}
+          updateStampOrRedeem={handleUpdateStampOrRedeemBoth}
           onScanSuccess={handleScanSuccess}
           onClose={() => setScanning(false)}
         />

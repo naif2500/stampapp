@@ -176,6 +176,16 @@ const resendOtp = async () => {
               Opret bruger
             </a>
           </p>
+
+          <p className=" absolute bottom-2 left-1/2 -translate-x-1/2 text-center text-sm mb-2">
+  <a
+    href="/BusinessLoginPage"
+    className="text-[#385C32] font-semibold underline"
+  >
+    Butik login
+  </a>
+</p>
+
         </form>
       ) : (
         <form onSubmit={verifyOtp} className="flex flex-col gap-4">

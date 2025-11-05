@@ -1,26 +1,26 @@
-const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions/v2/options");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
+
 
 const db = admin.firestore();
 
-/**
- * Cloud Function to add a stamp or redeem a loyalty card for a user.
- * Triggered via HTTPS callable function.
- */
-exports.updateStampOrRedeem = functions
-  .region("europe-north1") // 👈 deploy this function in Finland (closest to Denmark)
-  .https.onCall(async (data, context) => {
-  const { userId, businessId } = data;
+// Default region for all functions in this file
+setGlobalOptions({ region: "europe-north1" });
 
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+exports.updateStampOrRedeem = onCall(async (request) => {
+   const { userId, businessId } = request.data;
+
+  if (!request.auth) {
+    throw new HttpsError(
       "unauthenticated",
       "You must be logged in to call this function."
     );
   }
 
   if (!userId || !businessId) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       "invalid-argument",
       "Missing userId or businessId"
     );
@@ -29,7 +29,7 @@ exports.updateStampOrRedeem = functions
   const userRef = db.collection("users").doc(userId);
   const userSnap = await userRef.get();
   if (!userSnap.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found");
+    throw new HttpsError("not-found", "User not found");
   }
 
   const userData = userSnap.data();
@@ -37,7 +37,7 @@ exports.updateStampOrRedeem = functions
   const card = joinedBusinesses[businessId];
 
   if (!card || card.type !== "stamp") {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       "failed-precondition",
       "No stamp card found for this business"
     );
@@ -56,15 +56,15 @@ exports.updateStampOrRedeem = functions
 
     await customerRef.update({
       stampCount: currentStamps + 1,
-      lastStampTime: admin.firestore.FieldValue.serverTimestamp()
+      lastStampTime: FieldValue.serverTimestamp()
     });
 
     await userRef.update({
       joinedBusinesses,
-      lastStampTime: admin.firestore.FieldValue.serverTimestamp()
+      lastStampTime: FieldValue.serverTimestamp()
     });
 
-    const log = { type: "stamp", businessId, timestamp: admin.firestore.FieldValue.serverTimestamp() };
+    const log = { type: "stamp", businessId, timestamp: FieldValue.serverTimestamp() };
     await historyRef.add(log);
     await userHistoryRef.add(log);
 
@@ -75,15 +75,15 @@ exports.updateStampOrRedeem = functions
 
     await customerRef.update({
       stampCount: 0,
-      lastRedeemTime: admin.firestore.FieldValue.serverTimestamp()
+      lastRedeemTime: FieldValue.serverTimestamp()
     });
 
     await userRef.update({
       joinedBusinesses,
-      lastRedeemTime: admin.firestore.FieldValue.serverTimestamp()
+      lastRedeemTime: FieldValue.serverTimestamp()
     });
 
-    const log = { type: "redeem", businessId, timestamp: admin.firestore.FieldValue.serverTimestamp() };
+    const log = { type: "redeem", businessId, timestamp: FieldValue.serverTimestamp() };
     await historyRef.add(log);
     await userHistoryRef.add(log);
 
