@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const searchParams = useSearchParams(); // ✅ added
+  const searchParams = useSearchParams(); // added
   const businessId = searchParams.get('businessId');
   const fromQR = searchParams.get('fromQR') === 'true';
 
@@ -99,7 +99,7 @@ const verifyOtp = async (e) => {
     // confirm the OTP with Firebase
     await confirmationResult.confirm(otpCode);
 
-    // ✅ NEW: redirect logic
+    // NEW: redirect logic
     if (fromQR && businessId) {
       router.replace(`/business/${businessId}?fromQR=true`);
     } else {
@@ -191,7 +191,7 @@ const resendOtp = async () => {
         <form onSubmit={verifyOtp} className="flex flex-col gap-4">
 
           
-    {/* ✅ Message above OTP inputs */}
+    {/*  Message above OTP inputs */}
     <p className="text-center text-lg text-gray-700 mb-2 font-bold">
       Vi har sendt dig en SMS
     </p>
@@ -199,7 +199,7 @@ const resendOtp = async () => {
       Indtast koden sendt til <span className="font-semibold">{phone}</span>
     </p>
 
-    {/* ✅ 6-digit OTP input */}
+    {/*  6-digit OTP input */}
     <div className="flex justify-between gap-2">
       {otp.map((data, index) => (
         <input

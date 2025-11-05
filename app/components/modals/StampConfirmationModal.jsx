@@ -1,9 +1,9 @@
 'use client';
 
 export default function StampConfirmationModal({
-  customerName,      // optional, used for business confirmation
-  newStampCount,     // optional, used for customer confirmation
-  stampsNeeded,      // optional, used for customer confirmation
+  customerName,      
+  newStampCount,
+  stampsNeeded,
   onClose
 }) {
   const isBusinessView = !!customerName;
@@ -12,7 +12,7 @@ export default function StampConfirmationModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-[300px] text-center">
-        <h2 className="text-xl font-bold text-green-600 mb-2">✅ Stamp Added!</h2>
+        <h2 className="text-xl font-bold text-green-600 mb-2">Stamp Added!</h2>
 
         {isBusinessView && (
           <p className="text-gray-700 mb-4">

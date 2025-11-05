@@ -46,7 +46,7 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
                   ${isFilled ? 'bg-white opacity-100' : 'bg-white opacity-30'}`}
               >
                 {isLast ? (
-                  <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> // 🎁 show gift icon
+                  <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> //  show gift icon
                 ) : (
                   <Check className="w-1/2 h-1/2 text-[#2E4632]" />
                 )}
@@ -80,7 +80,7 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
                 >
                   {!isGhost &&
                     (isLast ? (
-                      <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> // 🎁 gift icon
+                      <Gift className="w-[25px] h-[25px] text-[#2E4632]" /> //  gift icon
                     ) : (
                       <Check className="w-1/2 h-1/2 text-[#2E4632]" />
                     ))}
