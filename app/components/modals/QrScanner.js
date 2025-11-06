@@ -36,7 +36,7 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
     return () => html5QrCodeRef.current?.stop();
   }, []);
 
-  // Handle scan: just parse and open modal
+  // Handle scan
   const handleScan = useCallback((decodedText) => {
     let parsed;
     try {
@@ -77,8 +77,8 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
 
   
 
-// 2 Call your Cloud Function securely
-const functions = getFunctions(undefined, "europe-north1"); // match your region
+// 2 Call  Cloud Function securely
+const functions = getFunctions(undefined, "europe-north1"); 
 const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
 
 try {
@@ -117,16 +117,25 @@ alert("Stamp applied successfully!");
     <div className="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50">
       {/* Close button */}
       <button
-        onClick={() => {
-          html5QrCodeRef.current?.stop().catch(() => {});
-          setModalOpen(false);
-          setScannedData(null);
-          onClose?.();
-        }}
-        className="absolute top-5 left-5 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 z-[999]"
-      >
-        <X className="w-6 h-6" />
-      </button>
+  onClick={async () => {
+    try {
+      if (html5QrCodeRef.current) {
+        await html5QrCodeRef.current.stop();
+        html5QrCodeRef.current.clear(); 
+      }
+    } catch (err) {
+      console.warn("QR stop error:", err);
+    } finally {
+      setModalOpen(false);
+      setScannedData(null);
+      onClose?.();
+    }
+  }}
+  className="absolute top-5 left-5 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 z-[999]"
+>
+  <X className="w-6 h-6" />
+</button>
+
 
       {/* Title */}
       <h2 className="text-center text-white font-bold text-xl mb-6">Scan QR Code</h2>
