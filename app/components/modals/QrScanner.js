@@ -13,28 +13,39 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
   const [modalOpen, setModalOpen] = useState(false);
 
   // Start scanner
-  useEffect(() => {
-    html5QrCodeRef.current = new Html5Qrcode("qr-reader");
+ useEffect(() => {
+  html5QrCodeRef.current = new Html5Qrcode("qr-reader");
 
-    Html5Qrcode.getCameras().then((devices) => {
-      if (!devices || devices.length === 0) return;
+  Html5Qrcode.getCameras().then((devices) => {
+    if (!devices || devices.length === 0) return;
 
-      const backCamera = devices.find((d) =>
-        d.label.toLowerCase().includes("back") ||
-        d.label.toLowerCase().includes("environment")
-      );
-      const cameraId = backCamera ? backCamera.id : devices[0].id;
+    const backCamera = devices.find((d) =>
+      d.label.toLowerCase().includes("back") ||
+      d.label.toLowerCase().includes("environment")
+    );
+    const cameraId = backCamera ? backCamera.id : devices[0].id;
 
-      html5QrCodeRef.current.start(
-        cameraId,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        handleScan,
-        () => {}
-      );
-    });
+    html5QrCodeRef.current.start(
+      cameraId,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      handleScan,
+      () => {}
+    );
+  });
 
-    return () => html5QrCodeRef.current?.stop();
-  }, []);
+  return () => {
+    (async () => {
+      try {
+        if (html5QrCodeRef.current) {
+          await html5QrCodeRef.current.stop();
+          html5QrCodeRef.current.clear();
+        }
+      } catch (err) {
+        console.warn("QR cleanup error:", err);
+      }
+    })();
+  };
+}, []);
 
   // Handle scan
   const handleScan = useCallback((decodedText) => {
