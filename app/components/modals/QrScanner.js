@@ -75,11 +75,10 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
       const tokenSnap = await getDoc(tokenRef);
       const customerId = tokenSnap.data().customerId;
 
-      // 2️ Call your local update function for instant UI feedback
-await updateStampOrRedeem(customerId, tokenBusinessId);
+  
 
-// 3️ Call your Cloud Function securely
-const functions = getFunctions(undefined, "us-central1"); // match your region
+// 2 Call your Cloud Function securely
+const functions = getFunctions(undefined, "europe-north1"); // match your region
 const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
 
 try {
@@ -92,7 +91,7 @@ try {
   console.error(" Cloud Function error:", fnError);
 }
 
-// 4️ Notify success
+// 3 Notify success
 onScanSuccess?.(customerId);
 alert("Stamp applied successfully!");
 

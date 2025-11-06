@@ -145,7 +145,11 @@ await updateDoc(userRef, {
       {/* Clickable card */}
       <div className="space-y-4">
         <div
-  onClick={!fromQR ? joinBusiness : undefined}
+  onClick={async () => {
+    if (fromQR) return;
+    await joinBusiness();
+    router.push('/costumer');
+  }}
   className={`${fromQR ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
 >
           <LoyaltyCard

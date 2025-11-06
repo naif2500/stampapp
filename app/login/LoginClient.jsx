@@ -77,11 +77,31 @@ const handleOtpChange = (element, index) => {
   newOtp[index] = element.value;
   setOtp(newOtp);
 
-  // Move focus to next input
+  // Move focus to next input if value entered
   if (element.nextSibling && element.value !== '') {
     element.nextSibling.focus();
   }
 };
+
+// NEW: handle paste (split code)
+const handleOtpPaste = (e) => {
+  e.preventDefault();
+  const pastedData = e.clipboardData.getData('text').trim();
+  if (!/^\d{1,6}$/.test(pastedData)) return; // only up to 6 digits
+
+  const digits = pastedData.split('');
+  const newOtp = [...otp];
+  digits.forEach((digit, idx) => {
+    if (idx < newOtp.length) newOtp[idx] = digit;
+  });
+  setOtp(newOtp);
+
+  // focus last filled input
+  const nextIndex = Math.min(digits.length, 5);
+  const inputs = document.querySelectorAll('.otp-input');
+  if (inputs[nextIndex]) inputs[nextIndex].focus();
+};
+
 
 
 const verifyOtp = async (e) => {
@@ -204,13 +224,14 @@ const resendOtp = async () => {
       {otp.map((data, index) => (
         <input
           key={index}
-          type="tel"           
+          type="password"           
           inputMode="numeric"  
           pattern="[0-9]*"     
           maxLength="1"
           value={data}
           onChange={(e) => handleOtpChange(e.target, index)}
-          className="w-12 h-12 text-center border rounded text-lg"
+          onPaste={index === 0 ? handleOtpPaste : undefined}
+          className="otp-input w-12 h-12 text-center border rounded text-lg tracking-widest"
         />
       ))}
     </div>
