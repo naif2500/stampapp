@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc, collection, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard';
 import { useSearchParams } from 'next/navigation';
@@ -56,70 +57,36 @@ export default function BusinessDetailPage() {
 }, [fromQR, business, customerId]);
 
 
-  const joinBusiness = async () => {
-    if (!customerId || !business) return;
+const joinBusiness = async () => {
+    if (!customerId || !business) return
+    try {
+      const functions = getFunctions()
+      const fn = httpsCallable(functions, 'joinBusiness')
+      const result = await fn({
+        customerId,
+        businessId: business.id
+      })
 
-    const initialStamps = business.type === 'punch' ? business.stampsNeeded : 0;
+      if (result.data?.error) return
 
-    // Update user profile
-    const userRef = doc(db, 'users', customerId);
-const userSnap = await getDoc(userRef);
-const currentJoined = userSnap.data()?.joinedBusinesses || {};
-
-try {
-
-await updateDoc(userRef, {
-  joinedBusinesses: {
-    ...currentJoined,
-    [business.id]: {
-      stamps: initialStamps,
-      name: business.name,
-      cardName: business.cardName,
-      type: business.type,
-      logoUrl: business.logoUrl,
-      stampsNeeded: business.stampsNeeded,
-    },
-  },
-});
-
-
-    // Update business customers
-    const customerRef = doc(collection(db, `businesses/${business.id}/customers`), customerId);
-    const userData = userSnap.data();
-    await setDoc(customerRef, {
-      customerId,
-      name: userData.name || '',
-      phone: userData.phone || '',
-      stampCount: initialStamps,
-      type: business.type,
-      createdAt: new Date(),
-    });
-
-    console.log("Joining business:", {
-  businessId: business.id,
-  customerId,
-  authUser: getAuth().currentUser?.uid
-});
-
-     // NEW: trigger Cloud Function
-  await setDoc(doc(db, "membershipRequests", `${business.id}_${customerId}`), {
-    businessId: business.id,
-    customerId,
-    timestamp: new Date(),
-  });
-
-
-    if (fromQR) {
-      setShowJoinModal(true); // show modal instead of redirecting right away
-    } else {
-      router.push('/costumer');
+      if (fromQR) {
+        setShowJoinModal(true)
+      } else {
+        router.push('/costumer')
+      }
+    } catch (err) {
+      console.error(err)
     }
-  } catch (error) {
-    console.error("Error joining business:", error);
   }
-};
 
-  if (!business) return <div className="text-center mt-20"><Spinner /></div>;
+  if (!business) {
+    return (
+      <div className="text-center mt-20">
+        <Spinner />
+      </div>
+    )
+  }
+
 
   return (
     <div className="min-h-screen bg-white px-4 pt-20 py-6 lg:px-24">

@@ -2,14 +2,12 @@
 
 import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { db } from '@/lib/firebase';
 import { X } from 'lucide-react';
 
-export default function QrScanner({ businessId, updateStampOrRedeem, onScanSuccess, onClose }) {
+export default function QrScanner({ businessId, onScanSuccess, onClose }) {
   const html5QrCodeRef = useRef(null);
-  const [scannedData, setScannedData] = useState(null); // Data from QR code
+  const [scannedData, setScannedData] = useState(null); 
   const [modalOpen, setModalOpen] = useState(false);
 
   // Start scanner
@@ -71,36 +69,14 @@ export default function QrScanner({ businessId, updateStampOrRedeem, onScanSucce
 
   // Confirm stamp
   const confirmStamp = async () => {
-    const { token, tokenBusinessId } = scannedData;
-    const tokenRef = doc(db, `businesses/${tokenBusinessId}/tokens`, token);
 
     try {
-      await runTransaction(db, async (transaction) => {
-        const tokenSnap = await transaction.get(tokenRef);
-        if (!tokenSnap.exists() || tokenSnap.data().used) {
-          throw new Error("Invalid or already used token");
-        }
-        transaction.update(tokenRef, { used: true, usedAt: new Date() });
-      });
+    const { token, tokenBusinessId } = scannedData;
+   const functions = getFunctions(undefined, "europe-north1");
+const fn = httpsCallable(functions, "consumeToken");
 
-      const tokenSnap = await getDoc(tokenRef);
-      const customerId = tokenSnap.data().customerId;
+const result = await fn({ businessId, token });
 
-  
-
-// 2 Call  Cloud Function securely
-const functions = getFunctions(undefined, "europe-north1"); 
-const updateStampOrRedeemFn = httpsCallable(functions, "updateStampOrRedeem");
-
-try {
-  const result = await updateStampOrRedeemFn({
-    userId: customerId,
-    businessId: tokenBusinessId,
-  });
-  console.log(" Cloud Function result:", result.data);
-} catch (fnError) {
-  console.error(" Cloud Function error:", fnError);
-}
 
 // 3 Notify success
 onScanSuccess?.(customerId);
