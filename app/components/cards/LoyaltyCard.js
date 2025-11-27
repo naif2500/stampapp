@@ -17,7 +17,8 @@ const LoyaltyCard = ({ businessId, name, cardName, onClick, logoUrl, stamps, sta
     <div
       key={businessId}
       className="relative bg-gradient-to-br from-[#2E4632] to-[#1E2C22] cursor-pointer rounded-xl shadow-2xl w-full max-w-[350px] p-5 flex flex-col"
-      onClick={() => onClick(businessId)}
+      onClick={onClick}
+
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">

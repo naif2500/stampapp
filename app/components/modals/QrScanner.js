@@ -75,11 +75,11 @@ export default function QrScanner({ businessId, onScanSuccess, onClose }) {
    const functions = getFunctions(undefined, "europe-north1");
 const fn = httpsCallable(functions, "consumeToken");
 
-const result = await fn({ businessId, token });
+const result = await fn({ businessId: tokenBusinessId, token });
 
 
 // 3 Notify success
-onScanSuccess?.(customerId);
+onScanSuccess?.(result.data.customerId);
 alert("Stamp applied successfully!");
 
     } catch (err) {

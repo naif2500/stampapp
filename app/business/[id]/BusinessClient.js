@@ -60,7 +60,7 @@ export default function BusinessDetailPage() {
 const joinBusiness = async () => {
     if (!customerId || !business) return
     try {
-      const functions = getFunctions()
+const functions = getFunctions(undefined, "europe-north1")
       const fn = httpsCallable(functions, 'joinBusiness')
       const result = await fn({
         customerId,
