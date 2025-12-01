@@ -2,8 +2,8 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase'; // make sure you export `auth` from your firebase.js
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function ScanRedirectPage() {
   const params = useSearchParams();
@@ -13,14 +13,13 @@ export default function ScanRedirectPage() {
   useEffect(() => {
     if (!businessId) return;
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        //  User is logged in → go straight to business page
-        router.replace(`/business/${businessId}?fromQR=true`);
-      } else {
-        //  Not logged in → go to signup page
-        router.replace(`/signup?businessId=${businessId}&fromQR=true`);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        await signInAnonymously(auth);
+        return;
       }
+
+      router.replace(`/business/${businessId}?fromQR=true`);
     });
 
     return () => unsubscribe();
