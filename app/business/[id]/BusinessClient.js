@@ -17,7 +17,7 @@ export default function BusinessDetailPage() {
   const router = useRouter();
   const [business, setBusiness] = useState(null);
   const [customerId, setCustomerId] = useState(null);
-  const [joinedBusinesses, setJoinedBusinesses] = useState({});
+const [joinedBusinesses, setJoinedBusinesses] = useState(null);
   const searchParams = useSearchParams();
   const fromQR = searchParams.get('fromQR') === 'true';
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -50,11 +50,31 @@ export default function BusinessDetailPage() {
   }, [id]);
 
   useEffect(() => {
-  if (fromQR && business && customerId) {
-    // Only show modal — don’t auto-join
-    setShowJoinModal(true);
+  if (!customerId) return
+  const ref = doc(db, 'users', customerId)
+  getDoc(ref).then((snap) => {
+    if (snap.exists()) {
+      setJoinedBusinesses(snap.data().joinedBusinesses || {})
+    } else {
+      setJoinedBusinesses({})
+    }
+  })
+}, [customerId])
+
+
+
+  useEffect(() => {
+  if (!fromQR || !business || !customerId || joinedBusinesses === null) return
+
+  const hasJoined = joinedBusinesses?.[business.id]
+
+  if (!hasJoined) {
+    setShowJoinModal(true)
+  } else {
+    router.replace('/costumer')
   }
-}, [fromQR, business, customerId]);
+}, [fromQR, business, customerId, joinedBusinesses, router])
+
 
 
 const joinBusiness = async () => {
@@ -67,13 +87,12 @@ const functions = getFunctions(undefined, "europe-north1")
         businessId: business.id
       })
 
-      if (result.data?.error) return
-
-      if (fromQR) {
-        setShowJoinModal(true)
-      } else {
+      setJoinedBusinesses((prev) => ({
+      ...prev,
+      [business.id]: prev?.[business.id] || {}
+    }));
+    
         router.push('/costumer')
-      }
     } catch (err) {
       console.error(err)
     }
@@ -115,7 +134,6 @@ const functions = getFunctions(undefined, "europe-north1")
   onClick={async () => {
     if (fromQR) return;
     await joinBusiness();
-    router.push('/costumer');
   }}
   className={`${fromQR ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
 >
@@ -136,11 +154,9 @@ const functions = getFunctions(undefined, "europe-north1")
     onConfirm={async () => {
       await joinBusiness();
       setShowJoinModal(false);
-      router.push('/costumer');
     }}
     onClose={() => {
       setShowJoinModal(false);
-      router.push('/costumer');
     }}
   />
 )}
