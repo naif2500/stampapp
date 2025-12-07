@@ -1,11 +1,10 @@
 import './globals.css'
 import { Geist, Geist_Mono, Unbounded } from 'next/font/google'
-import AuthInit from './AuthInit'
 
 
 export const metadata = {
-  title: 'Stampify',
-  description: 'A modern PWA built with Next.js',
+  title: 'Stamply',
+  description: 'Digitalt loyalitetskort og stempelkort',
   manifest: '/manifest.json'
 }
 
@@ -28,7 +27,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${unbounded.variable} bg-[#F8FFFA] antialiased`}>
-        <AuthInit />
        {children}
       </body>
     </html>

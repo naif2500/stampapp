@@ -1,17 +1,12 @@
-// functions/index.js
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const { setGlobalOptions } = require("firebase-functions/v2/options");
+const admin = require("firebase-admin");
 
-admin.initializeApp();
+setGlobalOptions({ region: "europe-north1" });
 
-//const { redeemStamp } = require('./src/redeemStamp');
-const { consumeToken } = require('./src/consumeToken');
-const { joinBusiness } = require('./src/JoinBusiness');
-const { updateStampOrRedeem } = require('./src/updateStampOrRedeem');
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
-
-exports.joinBusiness = joinBusiness;
-exports.updateStampOrRedeem = updateStampOrRedeem;
-exports.consumeToken = consumeToken;
-//exports.redeemStamp = redeemStamp;
-// You can add more exported functions here as needed
+exports.joinBusiness = require("./src/JoinBusiness").joinBusiness;
+exports.updateStampOrRedeem = require("./src/updateStampOrRedeem").updateStampOrRedeem;
+exports.consumeToken = require("./src/consumeToken").consumeToken;

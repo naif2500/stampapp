@@ -1,25 +1,38 @@
+
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { setGlobalOptions } = require("firebase-functions/v2/options");
 const admin = require("firebase-admin");
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 const db = admin.firestore();
 
-setGlobalOptions({ region: "europe-north1" });
 
 exports.joinBusiness = onCall(async (request) => {
-  const { customerId, businessId } = request.data;
-
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "User must be authenticated");
+    throw new HttpsError("unauthenticated", "Login required");
   }
 
-  if (!customerId || !businessId) {
-    throw new HttpsError("invalid-argument", "Missing customerId or businessId");
+  const customerId = request.auth.uid;
+  const { businessId } = request.data;
+
+  if (!businessId) {
+    throw new HttpsError("invalid-argument", "Missing businessId");
+  }
+
+  const userRef = db.collection("users").doc(customerId);
+  const userSnap = await userRef.get();
+
+  if (!userSnap.exists) {
+    await userRef.set({
+      joinedBusinesses: {},
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
   }
 
   const businessRef = db.collection("businesses").doc(businessId);
   const businessSnap = await businessRef.get();
+
   if (!businessSnap.exists) {
     throw new HttpsError("not-found", "Business not found");
   }
@@ -27,19 +40,9 @@ exports.joinBusiness = onCall(async (request) => {
   const business = businessSnap.data();
   const initialStamps = business.type === "punch" ? business.stampsNeeded : 0;
 
-  const userRef = db.collection("users").doc(customerId);
-  const userSnap = await userRef.get();
-  const userData = userSnap.exists ? userSnap.data() : {};
-  const currentJoined = userData.joinedBusinesses || {};
-
   await userRef.set(
     {
-      createdAt:
-        userData.createdAt ||
-        admin.firestore.FieldValue.serverTimestamp(),
-
       joinedBusinesses: {
-        ...currentJoined,
         [businessId]: {
           stamps: initialStamps,
           name: business.name,
@@ -53,16 +56,11 @@ exports.joinBusiness = onCall(async (request) => {
     { merge: true }
   );
 
-  const customerRef = businessRef.collection("customers").doc(customerId);
-
-  await customerRef.set(
+  await businessRef.collection("customers").doc(customerId).set(
     {
       customerId,
-      name: userData.name || "",
-      phone: userData.phone || "",
-      stampCount: initialStamps,
-      type: business.type,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      stampCount: initialStamps
     },
     { merge: true }
   );

@@ -3,46 +3,38 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-    
 
-      // Allow Cloud Functions v2 (admin SDK) to write user docs
-      allow write: if request.auth == null;
-
-      // Allow the authenticated user to read and write their own document
+      // Allow authenticated users to read and write their own data
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-
       match /history/{historyId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow create: if request.auth != null && request.auth.uid == userId;
+        allow read, create: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     match /businesses/{businessId} {
 
+      // Any authenticated user can read business data
       allow read: if request.auth != null;
-      
-      // Allow Cloud Functions (admin SDK v2)
-  allow write: if request.auth == null;
 
-
+      // Only the business owner can write business data
       allow write: if request.auth != null && request.auth.uid == businessId;
 
       match /tokens/{tokenId} {
         allow create: if request.auth != null;
-  allow read: if request.auth != null && request.auth.uid == businessId;
+        allow read: if request.auth != null && request.auth.uid == businessId;
       }
 
       match /customers/{customerId} {
 
+        // Business owners can read customer data
         allow read: if request.auth != null && request.auth.uid == businessId;
 
-        allow write: if request.auth == null || request.auth.uid == businessId;
-
+        // Business owners can write their own customer data
+        allow write: if request.auth != null && request.auth.uid == businessId;
 
         match /history/{historyId} {
-          allow read: if request.auth != null && request.auth.uid == businessId;
-          allow write: if request.auth != null && request.auth.uid == businessId;
+          allow read, write: if request.auth != null && request.auth.uid == businessId;
         }
       }
     }

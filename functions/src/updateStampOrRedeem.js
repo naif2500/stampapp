@@ -1,13 +1,10 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { setGlobalOptions } = require("firebase-functions/v2/options");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 
 
 const db = admin.firestore();
 
-// Default region for all functions in this file
-setGlobalOptions({ region: "europe-north1" });
 
 exports.updateStampOrRedeem = onCall(async (request) => {
    const { userId, businessId } = request.data;

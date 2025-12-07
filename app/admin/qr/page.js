@@ -1,8 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useRouter } from 'next/navigation'
+import { auth } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
+
+
 
 export default function AdminQRPage() {
   const [businessId, setBusinessId] = useState(null)
@@ -10,7 +13,6 @@ export default function AdminQRPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const auth = getAuth()
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
         router.push('/BusinessLoginPage')

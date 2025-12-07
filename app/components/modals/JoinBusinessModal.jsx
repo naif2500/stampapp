@@ -30,7 +30,7 @@ export default function JoinBusinessModal({ business, onConfirm, onCancel }) {
             {business.name}
           </h2>
           <p className="text-gray-600 text-sm mb-6">
-            Join {business.name}’s loyalty program and start earning stamps.
+            Deltag i {business.name}'s loyalitetsprogram og start med at tjene stempler.
           </p>
 
           {/* Terms checkbox */}
@@ -64,7 +64,7 @@ export default function JoinBusinessModal({ business, onConfirm, onCancel }) {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
           >
-            Join Loyalty Program
+            Deltag i Loyalitetsprogram
           </button>
 
         </motion.div>
