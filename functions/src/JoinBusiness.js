@@ -11,7 +11,7 @@ exports.joinBusiness = onCall(async (request) => {
   const { customerId, businessId } = request.data;
 
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Login required");
+    throw new HttpsError("unauthenticated", "User must be authenticated");
   }
 
   if (!customerId || !businessId) {
@@ -29,37 +29,43 @@ exports.joinBusiness = onCall(async (request) => {
 
   const userRef = db.collection("users").doc(customerId);
   const userSnap = await userRef.get();
-  if (!userSnap.exists) {
-    throw new HttpsError("not-found", "User not found");
-  }
-
-  const userData = userSnap.data();
+  const userData = userSnap.exists ? userSnap.data() : {};
   const currentJoined = userData.joinedBusinesses || {};
 
-  await userRef.update({
-    joinedBusinesses: {
-      ...currentJoined,
-      [businessId]: {
-        stamps: initialStamps,
-        name: business.name,
-        cardName: business.cardName,
-        type: business.type,
-        logoUrl: business.logoUrl,
-        stampsNeeded: business.stampsNeeded
+  await userRef.set(
+    {
+      createdAt:
+        userData.createdAt ||
+        admin.firestore.FieldValue.serverTimestamp(),
+
+      joinedBusinesses: {
+        ...currentJoined,
+        [businessId]: {
+          stamps: initialStamps,
+          name: business.name,
+          cardName: business.cardName,
+          type: business.type,
+          logoUrl: business.logoUrl,
+          stampsNeeded: business.stampsNeeded
+        }
       }
-    }
-  });
+    },
+    { merge: true }
+  );
 
   const customerRef = businessRef.collection("customers").doc(customerId);
 
-  await customerRef.set({
-    customerId,
-    name: userData.name || "",
-    phone: userData.phone || "",
-    stampCount: initialStamps,
-    type: business.type,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
-  });
+  await customerRef.set(
+    {
+      customerId,
+      name: userData.name || "",
+      phone: userData.phone || "",
+      stampCount: initialStamps,
+      type: business.type,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    },
+    { merge: true }
+  );
 
   return { success: true };
 });
