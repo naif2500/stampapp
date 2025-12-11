@@ -30,6 +30,8 @@ exports.joinBusiness = onCall(async (request) => {
     });
   }
 
+
+
   const businessRef = db.collection("businesses").doc(businessId);
   const businessSnap = await businessRef.get();
 
@@ -37,13 +39,36 @@ exports.joinBusiness = onCall(async (request) => {
     throw new HttpsError("not-found", "Business not found");
   }
 
+  
+  function generateShortId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let id = '';
+  for (let i = 0; i < 4; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return id;
+}
+ 
+// Generate shortId and ensure uniqueness inside this business
+let shortId;
+let exists = true;
+
+while (exists) {
+  shortId = generateShortId();
+  const checkRef = businessRef.collection("customers")
+    .where("shortId", "==", shortId);
+  const snap = await checkRef.get();
+  exists = !snap.empty;
+}
+
   const business = businessSnap.data();
-  const initialStamps = business.type === "punch" ? business.stampsNeeded : 0;
+  const initialStamps = 0;
 
   await userRef.set(
     {
       joinedBusinesses: {
         [businessId]: {
+          shortId,
           stamps: initialStamps,
           name: business.name,
           cardName: business.cardName,
@@ -59,6 +84,7 @@ exports.joinBusiness = onCall(async (request) => {
   await businessRef.collection("customers").doc(customerId).set(
     {
       customerId,
+      shortId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       stampCount: initialStamps
     },

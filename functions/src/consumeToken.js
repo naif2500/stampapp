@@ -16,6 +16,10 @@ exports.consumeToken = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "Missing businessId or token");
   }
 
+  if (request.auth.uid !== businessId) {
+  throw new HttpsError("permission-denied", "You can only use tokens for your own business");
+}
+
   const tokenRef = db.doc(`businesses/${businessId}/tokens/${token}`);
 
   let customerId;

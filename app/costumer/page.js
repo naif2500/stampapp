@@ -2,9 +2,6 @@
 import { app } from '@/lib/firebase';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import QrModal from '../components/modals/QrModal';
-import RedeemModal from '../components/modals/RedeemModal';
-import AddBusinessModal from '../components/modals/AddBusinessModal';
 import LoyaltyCard from '../components/cards/LoyaltyCard';
 import { useEffect, useState } from 'react';
 import { Info, Check } from 'lucide-react';
@@ -115,66 +112,6 @@ useEffect(() => {
 
 
   
-
-  const joinBusiness = async (businessId) => {
-    if (!customerId) return;
-    const businessRef = doc(db, 'businesses', businessId);
-    const businessSnap = await getDoc(businessRef);
-  
-    const businessData = businessSnap.data();
-    const { stampsNeeded, name, cardName, type, logoUrl} = businessData;
-  
-    const initialStamps = type === 'punch' ? stampsNeeded : 0;
-  
-    const userRef = doc(db, 'users', customerId);
-    const updated = {
-      ...joinedBusinesses,
-      [businessId]: {
-        stamps: initialStamps,
-        name,
-        cardName,
-        type,
-        logoUrl,
-        stampsNeeded,
-      },
-    };
-  
-    await updateDoc(userRef, { joinedBusinesses: updated });
-    setJoinedBusinesses(updated);
-    setShowAddModal(false);
-
-    
-  };
-  
-  const handleRedeemConfirm = async () => {
-    if (!customerId || !confirmRedeem) return;
-  
-    try {
-      const functions = getFunctions(app, 'europe-west1');
-      const redeemStamp = httpsCallable(functions, 'redeemStamp');
-  
-      await redeemStamp({
-        businessId: confirmRedeem,
-      });
-  
-      // Refresh user data after successful redemption
-      const userRef = doc(db, 'users', customerId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        setJoinedBusinesses(userSnap.data().joinedBusinesses || {});
-      }
-  
-      setConfirmRedeem(null);
-      
-     
-    
-
-    } catch (error) {
-      console.error('Redemption failed:', error);
-      alert(error.message || 'Redemption failed. Please try again.');
-    }
-  };
-  
   
 
   return (
@@ -228,8 +165,6 @@ useEffect(() => {
                 onClick={() => {
                   if (data.type === 'stamp') {
                     router.push(`/cards/${businessId}`);
-                  } else {
-                    setConfirmRedeem(businessId);
                   }
                 }}
               />
@@ -237,34 +172,10 @@ useEffect(() => {
           </div>
         )}
 
-{confirmRedeem && joinedBusinesses[confirmRedeem]?.type !== 'stamp' && (
-  <RedeemModal
-            isOpen={true}
-            onClose={() => setConfirmRedeem(null)}
-            onConfirm={handleRedeemConfirm}
-            name={joinedBusinesses[confirmRedeem].name}
-            cardName={joinedBusinesses[confirmRedeem].cardName}
-          />
-        )}
-        {showQrForBusinessId && (
-          <QrModal
-             businessId={showQrForBusinessId}
-            customerId={customerId}
-            logoUrl={joinedBusinesses[showQrForBusinessId]?.logoUrl}
-            cardName={joinedBusinesses[showQrForBusinessId]?.cardName}
-            onClose={() => setShowQrForBusinessId(null)}
-          />
-        )}
+
         
 
-        {showAddModal && (
-          <AddBusinessModal
-            businesses={availableBusinesses}
-            customerId={customerId}
-            onClose={() => setShowAddModal(false)}
-            onJoin={joinBusiness}
-          />
-        )}
+
 
         {confirmRedeem && joinedBusinesses[confirmRedeem]?.stamps === joinedBusinesses[confirmRedeem]?.stampsNeeded && (
   <CongratsModal

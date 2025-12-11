@@ -128,6 +128,7 @@ export default function CardDetailPage() {
         <QrModal
           businessId={businessId}
           customerId={customerId}
+          shortId={cardData.shortId} 
           onClose={() => setShowQr(false)}
           logoUrl={cardData.logoUrl}
           cardName={cardData.cardName}

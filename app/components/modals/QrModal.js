@@ -5,7 +5,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { v4 as uuidv4 } from 'uuid';
 
-export default function QrModal({ businessId, customerId, onClose, logoUrl, cardName }) {
+export default function QrModal({ businessId, customerId, shortId, onClose, logoUrl, cardName }) {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
@@ -45,6 +45,10 @@ export default function QrModal({ businessId, customerId, onClose, logoUrl, card
         <h2 className="text-lg font-semibold mt-6 mb-2">{cardName}</h2>
         <p className="mb-6 text-xs">Scan denne QR-kode for at få dine stempler!</p>
         {token && <QRCodeCanvas value={JSON.stringify({ businessId, token })} size={180} />}
+        <p className="mt-4 text-sm font-bold text-gray-700 tracking-widest">
+  ID: {shortId}
+</p>
+<p className="text-xs text-gray-500">Vis dette hvis butikken spørger</p>
       </div>
     </div>
   );
