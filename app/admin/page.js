@@ -118,7 +118,7 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
 
   // Search filter
   const filteredCustomers = customers.filter(c =>
-    (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.shortId || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -149,7 +149,7 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
       width={30}
       height={30}
     />
-    <span className="text-[#B8E986] font-semibold text-xl">Stampify</span> 
+    <span className="text-[#B8E986] font-semibold text-xl">Stamply</span> 
     {/* placeholder business name */}
   </div>
 
@@ -238,7 +238,7 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
           return (
             <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-4 py-3 font-medium text-gray-800">
-                {customer.name || customer.id}
+                {customer.shortId || customer.id}
               </td>
               <td className="px-4 py-3 text-gray-700">Default Card</td>
               <td className="px-4 py-3">
@@ -288,7 +288,7 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
           {/* User Info */}
           <div className="flex justify-between items-center mb-3">
             <div>
-              <p className="font-semibold text-gray-800">{customer.name || customer.id}</p>
+              <p className="font-semibold text-gray-800">{customer.shortId || customer.id}</p>
               <p className="text-sm text-gray-500">Default Card</p>
             </div>
             <Link

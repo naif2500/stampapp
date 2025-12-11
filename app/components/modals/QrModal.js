@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,7 +19,7 @@ export default function QrModal({ businessId, customerId, shortId, onClose, logo
       const tokenRef = doc(db, `businesses/${businessId}/tokens`, oneTimeToken);
       await setDoc(tokenRef, {
         customerId,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
         used: false,
       });
     };
