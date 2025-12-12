@@ -23,6 +23,13 @@ exports.updateStampOrRedeem = onCall(async (request) => {
     );
   }
 
+  if (request.auth.uid !== businessId) {
+  throw new HttpsError(
+    "permission-denied",
+    "You can only update customers for your own business."
+  );
+}
+
   const userRef = db.collection("users").doc(userId);
   const userSnap = await userRef.get();
   if (!userSnap.exists) {

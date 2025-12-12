@@ -17,7 +17,6 @@ import {
 import { getAuth, onAuthStateChanged, setPersistence, indexedDBLocalPersistence} from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useRef } from "react";
-import CustomerNavbar from '../components/CustomerNavbar';
 import CongratsModal from '../components/modals/CongratsModal';
 import Spinner from '../components/ui/Spinner';
 
@@ -132,8 +131,7 @@ useEffect(() => {
 )}
 
 
-      {/* Sidebar (desktop) / Navbar (mobile) */}
-      <CustomerNavbar />
+      
       {/* Main Content */}
       <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-10 ">
         <div className="flex text-gray-800 justify-between items-center pt-4 mb-4">
