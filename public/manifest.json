@@ -1,7 +1,7 @@
 {
-  "name": "Stampify",
-  "short_name": "Stampify",
-  "start_url": "/login",
+  "name": "Stamply",
+  "short_name": "Stamply",
+  "start_url": "/costumer",
   "display": "standalone",
   "background_color": "#6774CA",
   "theme_color": "#FFFFFF",

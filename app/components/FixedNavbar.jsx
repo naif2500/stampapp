@@ -23,7 +23,7 @@ export default function FixedNavbar({ title, showBack = true, rightContent = nul
 
       {/* Center (Page title) */}
       {title && (
-        <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">
+        <h1 className="text-lg font-medium text-gray-800 text-center flex-1">
           {title}
         </h1>
       )}

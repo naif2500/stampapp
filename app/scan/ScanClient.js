@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import Spinner from '../components/ui/Spinner';
+
 
 export default function ScanRedirectPage() {
   const params = useSearchParams();
@@ -40,7 +42,7 @@ export default function ScanRedirectPage() {
 
   return (
     <div className="text-center mt-20">
-      Loading...
+      <Spinner />
     </div>
   );
 }

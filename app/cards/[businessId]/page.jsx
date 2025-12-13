@@ -8,6 +8,8 @@ import { db } from '@/lib/firebase';
 import LoyaltyCard from '../../components/cards/LoyaltyCard';
 import QrModal from '../../components/modals/QrModal';
 import FixedNavbar from '../../components/FixedNavbar';
+import Spinner from '../../components/ui/Spinner';
+
 
 export default function CardDetailPage() {
   const { businessId } = useParams();
@@ -65,7 +67,7 @@ export default function CardDetailPage() {
     };
   }, [businessId]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
   if (!cardData) return <p>Kort ikke fundet eller ikke tilsluttet.</p>;
 
   return (

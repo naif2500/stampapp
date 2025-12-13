@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Info, Home, User, Plus, ChevronRight} from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
@@ -22,8 +22,9 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [businessInfo, setBusinessInfo] = useState(null);
-
-  const itemsPerPage = 5; // 
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+  const itemsPerPage = 5; 
 
 
 
@@ -81,6 +82,17 @@ useEffect(() => {
   return () => unsubscribe(); // cleanup listener
 }, [isAuthenticated]);
 
+useEffect(() => {
+  function handleClickOutside(e) {
+    if (menuRef.current && !menuRef.current.contains(e.target)) {
+      setShowMenu(false)
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside)
+  return () => document.removeEventListener("mousedown", handleClickOutside)
+}, [])
+
+
 
 async function handleUpdateStampOrRedeemBoth(userId, businessId) {
   
@@ -96,12 +108,6 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
 }
 
 
-
-
-
-
-
-
   async function handleScanSuccess(scannedId) {
     setScanning(false);
     alert(`Added stamp for customer ${scannedId}`);
@@ -115,6 +121,8 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
   if (!isAuthenticated) {
     return null; // Return nothing or show an unauthorized page if not authenticated
   }
+
+  
 
   // Search filter
   const filteredCustomers = customers.filter(c =>
@@ -135,63 +143,47 @@ async function handleUpdateStampOrRedeemBoth(userId, businessId) {
       
               
             
-         {/* Sidebar (desktop) / Navbar (mobile) */}
-         <nav className="
-  fixed bottom-0 left-0 w-full bg-[#385C32] border-t shadow-lg z-40
-  flex justify-around items-center py-3
-  lg:static lg:flex-col lg:justify-between lg:items-start lg:w-auto lg:h-screen lg:pr-2
-">
-  {/* --- Top Section (Logo + Business name) --- */}
-  <div className="hidden lg:flex items-center gap-3 px-5 pt-6">
+         <nav className="w-full fixed top-0 left-0 bg-[#385C32] z-40 flex items-center justify-between px-4 py-3 shadow">
+  <div className="flex items-center gap-3">
     <Image
       src="/Light_green_elephant.png"
       alt="Elephant logo"
       width={30}
       height={30}
     />
-    <span className="text-[#B8E986] font-semibold text-xl">Stamply</span> 
-    {/* placeholder business name */}
+    <span className="text-[#B8E986] font-semibold text-xl">Stamply</span>
   </div>
 
-  {/* --- Main Nav Buttons --- */}
-  <div className="flex flex-1 justify-around py-2 lg:justify-start w-full lg:flex-col lg:items-start lg:gap-6 lg:px-5 lg:mt-10">
-    {/* Profile */}
-    <Link
-      href="/admin"
-      className="flex items-center gap-2 text-white hover:text-[#B8E986] transition"
-    >
-      <User className="w-6 h-6" />
-      <span className="hidden lg:inline">Profile</span>
-    </Link>
-
-   
-
-    {/* Home */}
-    <Link
-      href="/admin"
-      className="flex items-center gap-2 text-white hover:text-[#B8E986] transition"
-    >
-      <Home className="w-6 h-6" />
-      <span className="hidden lg:inline">Home</span>
-    </Link>
-  </div>
-
-  {/* --- Logout Button (Desktop only) --- */}
-  <button
-    onClick={() => {
-      const auth = getAuth();
-      auth.signOut();
-    }}
-    className="hidden lg:flex items-center gap-2 text-white hover:text-[#B8E986] transition mb-6 px-5"
-  >
-    <Info className="w-6 h-6 rotate-180" /> {/* You can replace with a LogOut icon */}
-    <span>Logout</span>
+  <div className="relative" ref={menuRef}>
+  <button onClick={() => setShowMenu(prev => !prev)}>
+    <img
+      src={businessInfo?.logoUrl || "/placeholder.png"}
+      alt="Profile"
+      className="w-9 h-9 rounded-full border border-white object-cover cursor-pointer"
+    />
   </button>
+
+  {showMenu && (
+    <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow text-sm">
+      <button
+        onClick={() => {
+          const auth = getAuth()
+          auth.signOut()
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+      >
+        Logout
+      </button>
+    </div>
+  )}
+</div>
+
 </nav>
+
 
    
          {/* Main Content */}
-         <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-4 md:mt-6">
+         <main className="flex-1 p-6 pb-24 lg:pb-6 lg:ml-4 md:mt-18 md:px-12">
       <h1 className="text-2xl font-bold mb-4 text-gray-800">Kunder</h1>
 
        <div className="flex items-center w-full mb-4">

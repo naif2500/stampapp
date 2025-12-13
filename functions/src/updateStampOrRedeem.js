@@ -30,6 +30,7 @@ exports.updateStampOrRedeem = onCall(async (request) => {
   );
 }
 
+
   const userRef = db.collection("users").doc(userId);
   const userSnap = await userRef.get();
   if (!userSnap.exists) {
@@ -53,6 +54,8 @@ exports.updateStampOrRedeem = onCall(async (request) => {
   const customerRef = db.collection(`businesses/${businessId}/customers`).doc(userId);
   const historyRef = customerRef.collection("history");
   const userHistoryRef = userRef.collection("history");
+  const globalRef = db.collection('globalActivity')
+
 
   if (currentStamps < needed) {
     // Add a stamp
@@ -68,9 +71,10 @@ exports.updateStampOrRedeem = onCall(async (request) => {
       lastStampTime: FieldValue.serverTimestamp()
     });
 
-    const log = { type: "stamp", businessId, timestamp: FieldValue.serverTimestamp() };
+    const log = { type: "stamp", businessId, customerId: userId, timestamp: FieldValue.serverTimestamp() };
     await historyRef.add(log);
     await userHistoryRef.add(log);
+    await globalRef.add(log);
 
     return { status: "stamp_added", currentStamps: currentStamps + 1 };
   } else if (currentStamps === needed) {
@@ -87,9 +91,10 @@ exports.updateStampOrRedeem = onCall(async (request) => {
       lastRedeemTime: FieldValue.serverTimestamp()
     });
 
-    const log = { type: "redeem", businessId, timestamp: FieldValue.serverTimestamp() };
+    const log = { type: "redeem", businessId, customerId: userId, timestamp: FieldValue.serverTimestamp() };
     await historyRef.add(log);
     await userHistoryRef.add(log);
+    await globalRef.add(log); 
 
     return { status: "redeemed", currentStamps: 0 };
   }

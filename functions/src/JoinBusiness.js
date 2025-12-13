@@ -21,16 +21,23 @@ exports.joinBusiness = onCall(async (request) => {
   }
 
   const userRef = db.collection("users").doc(customerId);
-  const userSnap = await userRef.get();
+  const userSnap = await userRef.get(); 
+  let joined = {};
 
-  if (!userSnap.exists) {
-    await userRef.set({
-      joinedBusinesses: {},
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+if (!userSnap.exists) {
+  await userRef.set({
+    joinedBusinesses: {},
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+} else {
+  joined = userSnap.data().joinedBusinesses || {};
+}
+
+
+
+  if (joined[businessId]) {
+    return { alreadyJoined: true, shortId: joined[businessId].shortId };
   }
-
-
 
   const businessRef = db.collection("businesses").doc(businessId);
   const businessSnap = await businessRef.get();
@@ -49,37 +56,40 @@ exports.joinBusiness = onCall(async (request) => {
   return id;
 }
  
-// Generate shortId and ensure uniqueness inside this business
 let shortId;
-let exists = true;
+let attempts = 0;
 
-while (exists) {
+while (attempts < 10) {
+  attempts++;
   shortId = generateShortId();
-  const checkRef = businessRef.collection("customers")
-    .where("shortId", "==", shortId);
-  const snap = await checkRef.get();
-  exists = !snap.empty;
+  const snap = await businessRef
+    .collection("customers")
+    .where("shortId", "==", shortId)
+    .get();
+
+  if (snap.empty) break;
 }
+
+if (!shortId) {
+  throw new HttpsError("internal", "Failed to generate a unique shortId");
+}
+
 
   const business = businessSnap.data();
   const initialStamps = 0;
 
-  await userRef.set(
-    {
-      joinedBusinesses: {
-        [businessId]: {
-          shortId,
-          stamps: initialStamps,
-          name: business.name,
-          cardName: business.cardName,
-          type: business.type,
-          logoUrl: business.logoUrl,
-          stampsNeeded: business.stampsNeeded
-        }
-      }
-    },
-    { merge: true }
-  );
+  await userRef.update({
+  [`joinedBusinesses.${businessId}`]: {
+    shortId,
+    stamps: initialStamps,
+    name: business.name,
+    cardName: business.cardName,
+    type: business.type,
+    logoUrl: business.logoUrl,
+    stampsNeeded: business.stampsNeeded
+  }
+});
+
 
   await businessRef.collection("customers").doc(customerId).set(
     {
@@ -91,5 +101,5 @@ while (exists) {
     { merge: true }
   );
 
-  return { success: true };
+  return { success: true, shortId };
 });

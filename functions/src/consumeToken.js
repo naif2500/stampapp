@@ -41,74 +41,21 @@ exports.consumeToken = onCall(async (request) => {
     });
   });
 
-  const userRef = db.collection("users").doc(customerId);
-  const userSnap = await userRef.get();
-  if (!userSnap.exists) {
-    throw new HttpsError("not-found", "User not found");
-  }
+ const { getFunctions, httpsCallable } = require("firebase-admin/functions");
 
-  const joined = userSnap.data().joinedBusinesses || {};
-  const card = joined[businessId];
-  if (!card || card.type !== "stamp") {
-    throw new HttpsError("failed-precondition", "No stamp card");
-  }
+  const updateFn = httpsCallable(
+    getFunctions(admin.app(), "europe-north1"),
+    "updateStampOrRedeem"
+  );
 
-  const needed = card.stampsNeeded || 9;
-  const current = card.stamps || 0;
+  const result = await updateFn({
+    userId: customerId,
+    businessId,
+  });
 
-  const customerRef = db.doc(`businesses/${businessId}/customers/${customerId}`);
-  const historyRef = customerRef.collection("history");
-  const userHistoryRef = userRef.collection("history");
-
-  if (current < needed) {
-    joined[businessId].stamps = current + 1;
-
-    await customerRef.update({
-      stampCount: current + 1,
-      lastStampTime: FieldValue.serverTimestamp()
-    });
-
-    await userRef.update({
-      joinedBusinesses: joined,
-      lastStampTime: FieldValue.serverTimestamp()
-    });
-
-    const log = {
-      type: "stamp",
-      businessId,
-      timestamp: FieldValue.serverTimestamp()
-    };
-
-    await historyRef.add(log);
-    await userHistoryRef.add(log);
-
-    return { status: "stamp_added", currentStamps: current + 1, customerId };
-  }
-
-  if (current === needed) {
-    joined[businessId].stamps = 0;
-
-    await customerRef.update({
-      stampCount: 0,
-      lastRedeemTime: FieldValue.serverTimestamp()
-    });
-
-    await userRef.update({
-      joinedBusinesses: joined,
-      lastRedeemTime: FieldValue.serverTimestamp()
-    });
-
-    const log = {
-      type: "redeem",
-      businessId,
-      timestamp: FieldValue.serverTimestamp()
-    };
-
-    await historyRef.add(log);
-    await userHistoryRef.add(log);
-
-    return { status: "redeemed", currentStamps: 0, customerId };
-  }
-
-  return { status: "no_change", currentStamps: current, customerId };
+  return {
+    status: result.data.status,
+    currentStamps: result.data.currentStamps,
+    customerId,
+  };
 });

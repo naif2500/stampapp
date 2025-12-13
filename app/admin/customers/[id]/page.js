@@ -7,6 +7,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Info, Home, User, ArrowLeft, ChevronRight } from 'lucide-react';
+import Spinner from '../../../components/ui/Spinner';
+
 
 export default function CustomerDetailPage() {
   const params = useParams();
@@ -60,7 +62,7 @@ export default function CustomerDetailPage() {
   }, [customerId, router]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading customer...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-gray-600"><Spinner /></div>;
   }
 
   if (!customer) {
