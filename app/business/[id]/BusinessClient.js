@@ -3,9 +3,9 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import Spinner from '../../components/ui/Spinner';
 import JoinBusinessModal from '../../components/modals/JoinBusinessModal';
 
@@ -26,14 +26,25 @@ export default function BusinessDetailPage() {
     });
   }, [id]);
 
-  const joinBusiness = async () => {
-    const auth = getAuth();
+  const ensureAnonymousAuth = async () => {
+    if (auth.currentUser) return;
 
-    // Ensure user exists before joining
+    await new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          unsubscribe();
+          resolve();
+        }
+      });
+    });
+
     if (!auth.currentUser) {
       await signInAnonymously(auth);
     }
+  };
 
+  const joinBusiness = async () => {
+     await ensureAnonymousAuth();
 
     const functions = getFunctions(undefined, 'europe-north1');
     const fn = httpsCallable(functions, 'joinBusiness');

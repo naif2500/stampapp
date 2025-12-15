@@ -1,21 +1,14 @@
 'use client';
-import { app } from '@/lib/firebase';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import LoyaltyCard from '../components/cards/LoyaltyCard';
 import { useEffect, useState } from 'react';
 import { Info, Check } from 'lucide-react';
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import {
   doc,
-  getDoc,
-  updateDoc,
-  collection,
-  getDocs,
   onSnapshot,
 } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged, setPersistence, indexedDBLocalPersistence} from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import {onAuthStateChanged} from 'firebase/auth';
 import { useRef } from "react";
 import CongratsModal from '../components/modals/CongratsModal';
 import Spinner from '../components/ui/Spinner';
@@ -23,91 +16,84 @@ import Spinner from '../components/ui/Spinner';
 
 
 export default function CustomerPage() {
-  const router = useRouter();
+   const router = useRouter();
+
+  const [customerId, setCustomerId] = useState(null);
   const [joinedBusinesses, setJoinedBusinesses] = useState({});
-  const [availableBusinesses, setAvailableBusinesses] = useState([]);
-  const [confirmRedeem, setConfirmRedeem] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [customerId, setCustomerId] = useState(null); //dynamic state
-  const [showQrForBusinessId, setShowQrForBusinessId] = useState(null);
   const [notification, setNotification] = useState(null);
-  const prevDataRef = useRef({}); //store previous state without triggering re-render
   const [loading, setLoading] = useState(true);
 
+  const [showCongrats, setShowCongrats] = useState(false);
+  const [congratsCardName, setCongratsCardName] = useState(null);
 
-  // Fetch authenticated user ID
+  const prevDataRef = useRef({});
+
+  // Observe auth only
   useEffect(() => {
-    const auth = getAuth();
- setPersistence(auth, indexedDBLocalPersistence)
-    .then(() => {
-    })
-    .catch((err) => console.error('Failed to set persistence', err));
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const uid = user.uid;
-        setCustomerId(uid);
-
-        const userRef = doc(db, 'users', uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          setJoinedBusinesses(userSnap.data().joinedBusinesses || {});
-        }
-      }  else {
-        //Redirect to login page if unauthenticated
-        router.push('/login');
-      }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+      setCustomerId(user.uid);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
-useEffect(() => {
-  if (!customerId) return;
+  // Observe user data
+  useEffect(() => {
+    if (!customerId) return;
 
-  const userRef = doc(db, "users", customerId);
+    const userRef = doc(db, 'users', customerId);
 
-  const unsubscribe = onSnapshot(userRef, (userSnap) => {
-    if (userSnap.exists()) {
-      const newData = userSnap.data().joinedBusinesses || {};
+    const unsubscribe = onSnapshot(userRef, (snap) => {
+      if (!snap.exists()) {
+        setLoading(false);
+        return;
+      }
+
+      const newData = snap.data().joinedBusinesses || {};
       const oldData = prevDataRef.current;
 
       for (const [businessId, newCard] of Object.entries(newData)) {
         const oldCard = oldData[businessId];
+        if (!oldCard) continue;
+
+        const oldStamps = oldCard.stamps || 0;
+        const newStamps = newCard.stamps || 0;
+
+        // Stamp received notification
         if (
-          oldCard &&
-          newCard.type === "stamp" &&
-          newCard.stamps > (oldCard.stamps || 0)
+          newCard.type === 'stamp' &&
+          newStamps > oldStamps
         ) {
           setNotification(`Du modtog et stempel for ${newCard.name}!`);
           setTimeout(() => setNotification(null), 3000);
         }
+
+        // Congrats modal only when threshold is crossed
+        if (
+          oldStamps < newCard.stampsNeeded &&
+          newStamps === newCard.stampsNeeded
+        ) {
+          setCongratsCardName(newCard.cardName);
+          setShowCongrats(true);
+        }
       }
 
-      for (const [businessId, newCard] of Object.entries(newData)) {
-  const oldCard = oldData[businessId];
-  
-  // Notify when a stamp is added
-  if (oldCard && newCard.stamps > (oldCard.stamps || 0)) {
-    setNotification(`Du modtog et stempel for ${newCard.name}!`);
-  }
-
-  // Show redeem modal when stamps reach the max
-  if (oldCard && newCard.stamps === newCard.stampsNeeded && oldCard.stamps < newCard.stampsNeeded) {
-    setConfirmRedeem(businessId); // opens your RedeemModal
-  }
-}
-     
-
-      prevDataRef.current = newData; // update ref for next comparison
+      prevDataRef.current = newData;
       setJoinedBusinesses(newData);
-    }
-    setLoading(false);
-  });
+      setLoading(false);
+    });
 
-  return () => unsubscribe();
-}, [customerId]);
+    return () => unsubscribe();
+  }, [customerId]);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner />
+      </div>
+    );
+  }
 
 
   
@@ -138,11 +124,7 @@ useEffect(() => {
           <h1 className="text-4xl font-bold">Hjem</h1>
         </div>
 
-       {loading ? (
-  <div className="flex flex-col items-center justify-center flex-grow">
-    <Spinner />
-  </div>
-) : Object.keys(joinedBusinesses).length === 0 ? (
+       {Object.keys(joinedBusinesses).length === 0 ? (
   <div className="flex flex-col items-center justify-center flex-grow text-gray-400">
     <Info className="w-16 h-16 mb-4" />
     <p className="text-center text-lg">Klik på plus knappen for at tilføje et stempelkort</p>
@@ -175,13 +157,13 @@ useEffect(() => {
 
 
 
-        {confirmRedeem && joinedBusinesses[confirmRedeem]?.stamps === joinedBusinesses[confirmRedeem]?.stampsNeeded && (
-  <CongratsModal
-    isOpen={true}
-    onClose={() => setConfirmRedeem(null)}
-    cardName={joinedBusinesses[confirmRedeem]?.cardName}
-  />
-)}
+       {showCongrats && (
+        <CongratsModal
+          isOpen={true}
+          onClose={() => setShowCongrats(false)}
+          cardName={congratsCardName}
+        />
+      )}
 
       </main>
     </div>

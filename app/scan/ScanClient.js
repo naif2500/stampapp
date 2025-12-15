@@ -15,27 +15,36 @@ export default function ScanRedirectPage() {
 
   useEffect(() => {
     if (!businessId) return;
+    let handled = false;
+
+    if (!auth.currentUser) {
+      signInAnonymously(auth);
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        await signInAnonymously(auth);
-        return;
-      }
+  if (handled) return;
 
-      const userRef = doc(db, 'users', user.uid);
-      const snap = await getDoc(userRef);
+  if (!user) {
+    return;
+  }
 
-      const joined =
-        snap.exists() &&
-        snap.data().joinedBusinesses &&
-        snap.data().joinedBusinesses[businessId];
+  handled = true;
 
-      if (joined) {
-        router.replace('/costumer');
-      } else {
-        router.replace(`/business/${businessId}`);
-      }
-    });
+  const userRef = doc(db, 'users', user.uid);
+  const snap = await getDoc(userRef);
+
+  const joined =
+    snap.exists() &&
+    snap.data().joinedBusinesses &&
+    snap.data().joinedBusinesses[businessId];
+
+  if (joined) {
+    router.replace('/costumer');
+  } else {
+    router.replace(`/business/${businessId}`);
+  }
+});
+
 
     return () => unsubscribe();
   }, [businessId, router]);
