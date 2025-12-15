@@ -56,9 +56,9 @@ await fn({ businessId: business.id });
 
   if (!business) {
   return (
-    <div className="text-center mt-20">
-      <Spinner />
-    </div>
+    <div className="flex items-center justify-center min-h-screen">
+              <Spinner />
+            </div>
   );
 }
 
